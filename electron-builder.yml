@@ -1,0 +1,55 @@
+appId: cn.trae.trae-forum-client.client
+productName: TRAE社区第三方客户端
+artifactName: TRAE-Forum-Client-${version}-${os}-${arch}.${ext}
+directories:
+  output: release
+  buildResources: build
+files:
+  - dist/**/*
+  - desktop/**/*
+  - proxy/server.mjs
+  - build/icon.png
+  - package.json
+asar: true
+npmRebuild: false
+publish: null
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: TRAE社区第三方客户端
+portable:
+  artifactName: TRAE-Forum-Client-${version}-win-${arch}-portable.${ext}
+mac:
+  icon: build/icon.icns
+  category: public.app-category.social-networking
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: false
+linux:
+  icon: build/icon.png
+  category: Network
+  maintainer: 小博同学
+  executableName: trae-forum-client
+  synopsis: TRAE 社区第三方客户端
+  target:
+    - target: deb
+      arch: [x64, arm64]
+    - target: AppImage
+      arch: [x64, arm64]
+    - target: tar.gz
+      arch: [x64, arm64]

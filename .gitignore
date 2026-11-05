@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.log
+
+release/
+.tools/
+.env
+.env.*
+!.env.example
+.trae-html-share-packages/

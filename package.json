@@ -1,0 +1,54 @@
+{
+  "name": "trae-forum-client",
+  "private": true,
+  "version": "0.1.0-beta.1",
+  "type": "module",
+  "homepage": "https://github.com/Zibor233/TRAE-Forum-Client",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "proxy": "node proxy/server.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.mjs",
+    "desktop": "npm run build && electron .",
+    "desktop:pack": "npm run build && electron-builder --dir --publish never",
+    "desktop:win": "npm run build && electron-builder --win --x64 --publish never",
+    "desktop:mac": "npm run build && electron-builder --mac --x64 --arm64 --publish never",
+    "desktop:linux": "npm run build && electron-builder --linux --x64 --arm64 --publish never",
+    "desktop:linux:arm64": "npm run build && electron-builder --linux --arm64 --publish never",
+    "desktop:smoke": "node scripts/smoke-desktop.mjs"
+  },
+  "dependencies": {
+    "dompurify": "^3.4.17",
+    "jsencrypt": "^3.5.4",
+    "marked": "^18.1.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "electron": "45.2.3",
+    "electron-builder": "26.18.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  },
+  "description": "TRAE社区第三方客户端 / TRAE Forum Client",
+  "author": {
+    "name": "小博同学",
+    "url": "https://forum.trae.cn/u/%E5%B0%8F%E5%8D%9A%E5%90%8C%E5%AD%A6"
+  },
+  "main": "desktop/main.mjs",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Zibor233/TRAE-Forum-Client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Zibor233/TRAE-Forum-Client/issues"
+  }
+}
