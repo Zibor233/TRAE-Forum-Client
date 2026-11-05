@@ -1,3 +1,4 @@
+import LoadingIndicator from '../components/LoadingIndicator'
 ﻿import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import FeedCard, { feedCardEstimate } from '../components/FeedCard'
 import FeaturedTopics from '../components/FeaturedTopics'
@@ -47,6 +48,7 @@ export default function FeedPage({ onCount, categoryId = null }: FeedPageProps) 
   const [tags, setTags] = useState<string[]>([])
   const [tagList, setTagList] = useState<TagItem[]>([])
   const [tagSearch, setTagSearch] = useState('')
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [noTags, setNoTags] = useState(false)
   const [tagError, setTagError] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
@@ -330,36 +332,25 @@ export default function FeedPage({ onCount, categoryId = null }: FeedPageProps) 
         <span className="text-[17px] font-semibold tracking-tight text-ink">TRAE社区第三方客户端</span>
       </div>
 
-      <SearchBar className="mb-4" />
+      <SearchBar className="mb-5" />
 
-      <div className="no-scrollbar -mx-4 flex items-center gap-1 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
-        {topCategories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => goCategory(category.id)}
-            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[13px] transition ${
-              categoryMode && categoryId === category.id
-                ? 'bg-surface font-semibold text-ink'
-                : 'text-sub hover:text-ink'
-            }`}
-          >
-            <span
-              className="h-1.5 w-1.5 rounded-full"
-              style={{ backgroundColor: category.color ? `#${category.color}` : '#ff2e4d' }}
-            />
-            {category.name}
+      <section aria-label="话题筛选" className="mb-5">
+        <div className="flex items-center gap-4">
+          <nav aria-label="话题分类" className="no-scrollbar flex min-w-0 flex-1 items-center gap-6 overflow-x-auto px-1 sm:gap-7">
+            <button onClick={() => goCategory(null)} aria-current={!categoryMode ? 'page' : undefined} className={`feed-category ${!categoryMode ? 'is-active' : ''}`}>全部</button>
+            {topCategories.map((category) => (
+              <button key={category.id} onClick={() => goCategory(category.id)} aria-current={categoryMode && categoryId === category.id ? 'page' : undefined} className={`feed-category ${categoryMode && categoryId === category.id ? 'is-active' : ''}`}>
+                {category.name}
+              </button>
+            ))}
+            <a href="#/categories" className="feed-category">更多分类<span className="ml-1 text-xs">›</span></a>
+          </nav>
+          <button aria-expanded={filtersOpen} aria-controls="feed-filters" onClick={() => setFiltersOpen(value => !value)} className={`flex shrink-0 items-center gap-1.5 py-3 text-[12px] transition hover:text-ink ${filtersOpen || tags.length || noTags || sort !== 'latest' || orderMode !== 'default' ? 'text-accent' : 'text-sub'}`}>
+            <TagIcon className="h-3.5 w-3.5" />筛选
+            <ChevronDownIcon className={`h-3 w-3 transition-transform ${filtersOpen ? 'rotate-180' : ''}`} />
           </button>
-        ))}
-        <a
-          href="#/categories"
-          className="inline-flex shrink-0 items-center gap-0.5 rounded-full px-3 py-1.5 text-[13px] text-sub transition hover:text-ink"
-        >
-          所有分类
-          <span className="text-[11px]">›</span>
-        </a>
-      </div>
-
-      <div className="relative mt-2 flex flex-wrap items-center gap-2 pb-1">
+        </div>
+        {filtersOpen && <div id="feed-filters" className="relative mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface p-3">
           {subcategories.length > 0 && (
             <DropMenu label={subId ? subLabel(subId, subcategories) : '子类别'} active={!!subId}>
               {(close) => (
@@ -441,17 +432,17 @@ export default function FeedPage({ onCount, categoryId = null }: FeedPageProps) 
               setSort('latest')
               setOrderMode('created')
             }}
-            className={`shrink-0 rounded-full border px-2.5 py-1 text-[12px] transition ${
+            className={`shrink-0 rounded-lg border px-3 py-2 text-[12px] transition ${
               orderMode === 'created'
-                ? 'border-[#ff2442] text-[#ff2442]'
+                ? 'border-accent/20 bg-accent/10 text-accent'
                 : 'border-line bg-surface text-sub hover:text-ink'
             }`}
             title="按创建时间排序，查看新帖"
           >
-            新{newCount > 0 ? `(${newCount})` : ''}
+            新帖{newCount > 0 ? ` · ${newCount}` : ''}
           </button>
 
-          <div className="ml-1 flex shrink-0 items-center gap-3 border-l border-line/70 pl-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1 rounded-lg bg-paper p-1">
             {SORTS.map((item) => (
               <button
                 key={item.key}
@@ -459,19 +450,18 @@ export default function FeedPage({ onCount, categoryId = null }: FeedPageProps) 
                   setSort(item.key)
                   setOrderMode('default')
                 }}
-                className={`relative pb-1 text-[12.5px] transition ${
-                  sort === item.key ? 'font-medium text-ink' : 'text-sub hover:text-ink'
+                className={`relative rounded-md px-3 py-1.5 text-[12px] transition ${
+                  sort === item.key && orderMode === 'default' ? 'bg-surface font-semibold text-ink shadow-sm' : 'text-sub hover:text-ink'
                 }`}
               >
                 {item.key === 'hot' && <FireIcon className="mr-0.5 inline h-3 w-3 align-[-2px]" />}
                 {item.label}
-                {sort === item.key && (
-                  <span className="absolute -bottom-[1px] left-0 right-0 h-[2px] rounded bg-[#ff2442]" />
-                )}
+
               </button>
             ))}
           </div>
-        </div>
+        </div>}
+      </section>
 
       {pendingCount > 0 && <button onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); void loadPage(true) }} className="my-3 block w-full rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm text-accent">查看 {pendingCount} 个新的或更新的话题 · 点击刷新</button>}
 
@@ -517,9 +507,10 @@ export default function FeedPage({ onCount, categoryId = null }: FeedPageProps) 
         <div ref={listRef} className="mt-3 flex items-start gap-3">
           {columns.map((column, index) => (
             <div key={index} className="flex min-w-0 flex-1 flex-col gap-y-3.5">
-              {column.map((topic) => (
+              {column.map((topic, row) => (
                 <FeedCard
                   key={topic.id}
+                  entranceDelay={Math.min(row * columnCount + index, 7) * 25}
                   topic={topic}
                   users={
                     topic.posters
@@ -540,7 +531,7 @@ export default function FeedPage({ onCount, categoryId = null }: FeedPageProps) 
         <div className="masonry mt-3 columns-2 md:columns-3 lg:columns-4">
           {Array.from({ length: 8 }).map((_, index) => (
             <div key={index} className="overflow-hidden rounded-lg bg-paper">
-              <div className="aspect-[4/3] w-full animate-pulse bg-line/60" />
+              <div className="grid aspect-[4/3] w-full place-items-center bg-line/40"><LoadingIndicator /></div>
             </div>
           ))}
         </div>
@@ -569,7 +560,7 @@ export default function FeedPage({ onCount, categoryId = null }: FeedPageProps) 
           ) : (
             <>
               {status === 'loading' && (
-                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-line border-t-accent" />
+                <LoadingIndicator />
               )}
               {status === 'loading' ? '正在加载更多…' : '继续下滑自动加载'}
             </>
@@ -644,7 +635,7 @@ function DropMenu({
     <div ref={rootRef} className="relative shrink-0">
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[12px] transition ${
+        className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[12px] transition ${
           active || open ? 'border-[#ff2442] text-[#ff2442]' : 'border-line bg-surface text-sub hover:text-ink'
         }`}
       >

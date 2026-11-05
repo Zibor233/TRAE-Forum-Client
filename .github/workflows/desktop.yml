@@ -14,16 +14,16 @@ jobs:
           - os: windows-latest
             platform: win
             arch: x64
-          - os: macos-latest
+          - os: macos-15-intel
             platform: mac
             arch: x64
-          - os: macos-latest
+          - os: macos-15
             platform: mac
             arch: arm64
           - os: ubuntu-22.04
             platform: linux
             arch: x64
-          - os: ubuntu-24.04-arm
+          - os: ubuntu-22.04-arm
             platform: linux
             arch: arm64
     runs-on: ${{ matrix.os }}
@@ -84,4 +84,5 @@ jobs:
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" --title "${RELEASE_TAG#v}" --prerelease --notes-file RELEASE_NOTES.md
           fi
+          gh release edit "$RELEASE_TAG" --notes-file RELEASE_NOTES.md
           gh release upload "$RELEASE_TAG" release/* --clobber

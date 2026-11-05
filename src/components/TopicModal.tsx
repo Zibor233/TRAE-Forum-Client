@@ -1,3 +1,4 @@
+import LoadingIndicator from './LoadingIndicator'
 ﻿import { lockBodyScroll } from '../lib/scrollLock'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
@@ -305,13 +306,13 @@ export default function TopicModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 sm:p-6"
+      className="modal-backdrop-enter fixed inset-0 z-50 flex items-center justify-center bg-black/55 sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
       <div
-        className="relative flex h-full w-full flex-col overflow-hidden bg-surface sm:h-[85vh] sm:max-h-[880px] sm:w-[min(1180px,94vw)] sm:rounded-2xl md:flex-row"
+        className="modal-panel-enter relative flex h-full w-full flex-col overflow-hidden bg-surface sm:h-[85vh] sm:max-h-[880px] sm:w-[min(1180px,94vw)] sm:rounded-2xl md:flex-row"
         onClick={(event) => event.stopPropagation()}
       >
         <button
@@ -324,7 +325,7 @@ export default function TopicModal({
 
         {status === 'loading' && (
           <div className="grid h-full w-full place-items-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-accent" />
+            <LoadingIndicator label="正在加载话题" />
           </div>
         )}
 

@@ -23,7 +23,7 @@ export default function SearchBar({ query = '', className = '' }: SearchBarProps
 
   return (
     <form onSubmit={submit} className={`mx-auto w-full max-w-[600px] ${className}`}>
-      <label className="flex h-10 min-w-0 items-center gap-2.5 rounded-full bg-paper px-4 transition focus-within:bg-surface focus-within:ring-1 focus-within:ring-line">
+      <label className="flex h-10 min-w-0 items-center gap-2.5 rounded-xl border border-line bg-surface px-4 transition focus-within:bg-surface focus-within:ring-1 focus-within:ring-line">
         <SearchIcon className="h-4 w-4 shrink-0 text-sub" />
         <input
           value={value}

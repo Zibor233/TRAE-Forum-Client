@@ -1,4 +1,5 @@
 ﻿import UpdateNotice from './components/UpdateNotice'
+import DesktopTitleBar from './components/DesktopTitleBar'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Sidebar, { MobileNav, type SidebarActive } from './components/Sidebar'
 import AuthModal from './components/AuthModal'
@@ -121,6 +122,7 @@ function readLocalReadIds(): Set<number> {
 }
 
 export default function App() {
+  const pageRef = useRef<HTMLElement>(null)
   const initial = useRef<Route>(parseHash())
   const [route, setRoute] = useState<Route>(initial.current)
   const [base, setBase] = useState<Route>(
@@ -280,6 +282,12 @@ export default function App() {
   }
 
   const view = route.name === 'topic' ? base : route
+  const pageKey = hashOf(view)
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const animation = pageRef.current?.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 220, easing: 'ease-out' })
+    return () => animation?.cancel()
+  }, [pageKey])
 
   const active: SidebarActive =
     view.name === 'feed' || view.name === 'category'
@@ -302,6 +310,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
+      <DesktopTitleBar />
       <UpdateNotice />
       <div className="mx-auto flex max-w-[1440px] gap-6 px-4">
         <Sidebar
@@ -315,7 +324,7 @@ export default function App() {
           onLogout={logout}
         />
 
-        <main className="min-w-0 flex-1">
+        <main ref={pageRef} className="min-w-0 flex-1">
           {view.name === 'feed' && <FeedPage onCount={setFeedCount} />}
           {view.name === 'category' && (
             <FeedPage onCount={setFeedCount} categoryId={view.id} />

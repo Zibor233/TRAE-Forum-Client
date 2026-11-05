@@ -52,7 +52,7 @@ export default function Sidebar({
 
   return (
     <aside className="hidden w-[220px] shrink-0 md:block">
-      <nav className="sticky top-5 flex h-[calc(100dvh-40px)] flex-col gap-1 pb-2">
+      <nav className="desktop-sidebar sticky top-5 flex h-[calc(100dvh-40px)] flex-col gap-1 pb-2">
         <a href="#/" className="mb-4 flex items-center gap-2.5 px-3" aria-label="回到首页">
           <TraeLogo className="h-[21px] w-[28px] text-[#ff2442]" />
           <span className="text-[13px] font-semibold tracking-tight text-ink">TRAE社区第三方客户端</span>

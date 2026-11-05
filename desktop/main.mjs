@@ -55,6 +55,9 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1440, height: 940, minWidth: 800, minHeight: 600,
     title: 'TRAE社区第三方客户端', backgroundColor: '#f6f7f9', show: false,
+    titleBarStyle: 'hidden',
+    ...(process.platform !== 'darwin' ? { titleBarOverlay: { color: '#00000000', symbolColor: '#737b89', height: 40 } } : { trafficLightPosition: { x: 16, y: 14 } }),
+    autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon: path.join(app.getAppPath(), 'build/icon.png') } : {}),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, webSecurity: true, spellcheck: false },
   })

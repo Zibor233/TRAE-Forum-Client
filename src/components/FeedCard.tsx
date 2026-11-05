@@ -1,3 +1,4 @@
+import LoadingIndicator from './LoadingIndicator'
 ﻿import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
 import type { Category, ForumUser, Topic } from '../types'
 import { compactNumber, coverPalette, firstChar, topicImage } from '../lib/format'
@@ -30,6 +31,7 @@ function maybePrefetch(topicId: number) {
 
 interface FeedCardProps {
   topic: Topic
+  entranceDelay?: number
   category?: Category
   users?: ForumUser[]
 }
@@ -55,7 +57,7 @@ export function feedCardEstimate(topic: Topic) {
   return textCoverText(topic) ? 300 * 3 / 4 + 78 : feedCardTextHeight(topic) + 38
 }
 
-export default function FeedCard({ topic, category, users }: FeedCardProps) {
+export default function FeedCard({ topic, category, users, entranceDelay = 0 }: FeedCardProps) {
   const readLike = () => {
     const session = loadSession()
     return session ? readTopicLike(session.username, topic.id) : null
@@ -74,6 +76,8 @@ export default function FeedCard({ topic, category, users }: FeedCardProps) {
     }
   }, [topic.id])
   const likes = likeState?.count ?? topic.like_count ?? 0
+  const [loadedCover, setLoadedCover] = useState<string | null>(null)
+  const [failedCover, setFailedCover] = useState<string | null>(null)
   const cover = topicImage(topic)
   const coverText = cover ? null : textCoverText(topic)
   const { bg, fg } = coverPalette(topic.id)
@@ -130,7 +134,8 @@ export default function FeedCard({ topic, category, users }: FeedCardProps) {
       ref={rootRef}
       data-feed-card
       href={`#/topic/${topic.id}`}
-      className="group block"
+      className="feed-card-enter group block"
+      style={{ '--entry-delay': `${entranceDelay}ms` } as CSSProperties}
       onMouseEnter={() => {
         if (hoverTimer.current) return
         hoverTimer.current = window.setTimeout(() => {
@@ -150,13 +155,17 @@ export default function FeedCard({ topic, category, users }: FeedCardProps) {
           className="relative w-full overflow-hidden rounded-lg bg-line/30"
           style={{ aspectRatio: String(ratio) }}
         >
+          {loadedCover !== cover && failedCover !== cover && <span className="pointer-events-none absolute inset-0 grid place-items-center"><LoadingIndicator /></span>}
+          {failedCover === cover && <span className="absolute inset-0 grid place-items-center text-xs text-sub">图片暂不可用</span>}
           <img
             src={cover}
+            onLoad={() => setLoadedCover(cover)}
+            onError={() => setFailedCover(cover)}
             alt={topic.title}
             loading="lazy"
             decoding="async"
             referrerPolicy="no-referrer"
-            className="h-full w-full object-cover transition duration-300 group-hover:opacity-95"
+            className={`feed-cover-image h-full w-full object-cover ${loadedCover === cover ? 'is-loaded' : ''}`}
           />
           {(topic.pinned || topic.pinned_globally) && (
             <span className="absolute left-2 top-2 rounded bg-black/50 px-1.5 py-0.5 text-[10.5px] text-white">
