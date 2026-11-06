@@ -1,3 +1,4 @@
+import BookmarkButton from './BookmarkButton'
 import LoadingIndicator from './LoadingIndicator'
 ﻿import { lockBodyScroll } from '../lib/scrollLock'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
@@ -30,6 +31,7 @@ import { FORUM_ORIGIN, type AuthSession } from '../lib/auth'
 import { errorStatus } from '../lib/errors'
 import {
   absolutize,
+  articleImageSource,
   compactNumber,
   coverPalette,
   fullDate,
@@ -463,7 +465,14 @@ export default function TopicModal({
               >
                 {opener && (
                   <div
-                    className="post-body mt-1 border-b border-line pb-5"
+                    className="post-body mt-1 border-b border-line pb-5 [&_img:not(.emoji)]:cursor-pointer"
+                    onClick={(event) => {
+                      const image = event.target instanceof Element ? event.target.closest('img:not(.emoji)') : null
+                      if (!image) return
+                      const source = articleImageSource(image)
+                      const index = images.indexOf(source)
+                      if (index >= 0) { event.preventDefault(); setImageIndex(index) }
+                    }}
                     dangerouslySetInnerHTML={{ __html: sanitizeCooked(opener.cooked) }}
                   />
                 )}
@@ -614,7 +623,7 @@ function CommentItem({
           />
           <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11.5px] text-sub">
             <span>{timeAgo(post.created_at)}</span>
-            <LikeButton postId={post.id} apiKey={session?.key} count={count} liked={liked} busy={busy} onToggle={toggle} />
+            <LikeButton readOnly={Boolean(session && post.username.toLowerCase() === session.username.toLowerCase())} postId={post.id} apiKey={session?.key} count={count} liked={liked} busy={busy} onToggle={toggle} />
             <button onClick={onReply} className="hover:text-ink">
               回复
             </button>
@@ -946,6 +955,7 @@ function ComposerBar({
 
       {(error || done) && (
         <pre
+          role={error ? 'alert' : 'status'}
           className={`mb-1.5 max-h-24 overflow-y-auto whitespace-pre-wrap rounded-lg px-3 py-2 text-[11.5px] leading-relaxed ${
             error ? 'bg-danger-soft text-danger' : 'bg-ok-soft text-ok'
           }`}
@@ -967,13 +977,13 @@ function ComposerBar({
             }
             setExpanded(true)
           }}
-          className="min-w-0 flex-1 truncate rounded-full bg-paper px-3.5 py-2 text-left text-[12.5px] text-sub hover:bg-line/70"
+          className="min-w-0 flex-1 sm:max-w-[230px] truncate rounded-full bg-paper px-3 py-2 text-left text-[12.5px] text-sub hover:bg-line/70"
         >
           {session ? (replyTo ? `回复 @${replyTo.username}…` : '说点什么…') : '登录后评论'}
         </button>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <LikeButton postId={likeTarget?.id} apiKey={session?.key} count={likeTotal} liked={liked} busy={busy} onToggle={toggleLike} large />
+          <LikeButton readOnly={Boolean(session && likeTarget?.username.toLowerCase() === session.username.toLowerCase())} postId={likeTarget?.id} apiKey={session?.key} count={likeTotal} liked={liked} busy={busy} onToggle={toggleLike} large />
           <button
             onClick={onJumpToComments}
             aria-label="滚动到第一条评论"
@@ -983,6 +993,7 @@ function ComposerBar({
             <CommentIcon className="h-4 w-4" />
             {compactNumber(commentCount)}
           </button>
+          <BookmarkButton key={`${session?.username || ''}:${likeTarget?.id}`} topicId={topicId} post={likeTarget} apiKey={session?.key} onRequireLogin={onRequireLogin} onError={setError} />
           <button
             onClick={onShare}
             title="复制官方原帖链接"
@@ -1016,8 +1027,9 @@ function extractImages(cooked: string, fallback?: string | null): string[] {
     const doc = new DOMParser().parseFromString(cooked || '', 'text/html')
     doc.querySelectorAll('img').forEach((img) => {
       if ((img.className || '').includes('emoji')) return
-      const src = img.getAttribute('src') || img.getAttribute('data-src')
-      if (src) urls.push(absolutize(src))
+      if (img.classList.contains('avatar')) return
+      const src = articleImageSource(img)
+      if (src) urls.push(src)
     })
   } catch {
     // ignore

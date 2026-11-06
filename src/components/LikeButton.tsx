@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { fetchPostLikers, errorMessage } from '../api'
 import type { ForumUser } from '../types'
@@ -14,9 +14,10 @@ interface Props {
   busy: boolean
   onToggle: () => void
   large?: boolean
+  readOnly?: boolean
 }
 
-export default function LikeButton({ postId, apiKey, count, liked, busy, onToggle, large }: Props) {
+export default function LikeButton({ postId, apiKey, count, liked, busy, onToggle, large, readOnly = false }: Props) {
   const [open, setOpen] = useState(false)
   const [users, setUsers] = useState<ForumUser[]>([])
   const [loading, setLoading] = useState(false)
@@ -32,11 +33,24 @@ export default function LikeButton({ postId, apiKey, count, liked, busy, onToggl
   const show = () => {
     cancelTimer()
     if (!postId || count <= 0) return
-    const rect = anchor.current?.getBoundingClientRect()
-    if (rect) setPosition({ left: Math.max(8, Math.min(rect.left, window.innerWidth - 288)),
-      top: Math.max(8, rect.bottom + 280 < window.innerHeight ? rect.bottom + 8 : rect.top - 272) })
     setOpen(true)
   }
+  useLayoutEffect(() => {
+    if (!open || !panel.current || !anchor.current) return
+    const update = () => {
+      const rect = anchor.current?.getBoundingClientRect()
+      const box = panel.current?.getBoundingClientRect()
+      if (!rect || !box) return
+      const below = rect.bottom + 8
+      const top = below + box.height <= window.innerHeight - 8 ? below : rect.top - box.height - 8
+      const next = { left: Math.max(8, Math.min(rect.left, window.innerWidth - box.width - 8)), top: Math.max(8, Math.min(top, window.innerHeight - box.height - 8)) }
+      setPosition(previous => previous.left === next.left && previous.top === next.top ? previous : next)
+    }
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(panel.current)
+    return () => observer.disconnect()
+  }, [open])
   useEffect(() => () => clearTimeout(timer.current), [])
   useEffect(() => { setOpen(false); setPage(0); setUsers([]) }, [postId, apiKey, count])
   useEffect(() => {
@@ -71,12 +85,13 @@ export default function LikeButton({ postId, apiKey, count, liked, busy, onToggl
       window.removeEventListener('resize', scroll)
     }
   }, [open])
+  if (readOnly && count <= 0) return null
   return (
     <span ref={anchor} className="inline-flex items-center gap-1"
       onPointerEnter={(event) => { if (event.pointerType !== 'touch') { cancelTimer(); timer.current = setTimeout(show, 250) } }}
       onPointerLeave={closeSoon}
       onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget) && !panel.current?.contains(event.relatedTarget)) closeSoon() }}>
-      <button type="button" onFocus={show} onClick={onToggle} disabled={busy} aria-label={liked ? '取消点赞' : '点赞'}
+      <button type="button" onFocus={show} onClick={readOnly ? show : onToggle} disabled={busy} aria-label={readOnly ? `查看点赞用户，共 ${count} 个赞` : liked ? '取消点赞' : '点赞'}
         className={`inline-flex items-center rounded-full py-1 disabled:opacity-60 ${liked ? 'text-[#ff2442]' : 'text-sub hover:text-ink'}`}>
         <HeartIcon className={`${large ? 'h-4 w-4' : 'h-3.5 w-3.5'} ${liked ? '[&_path]:fill-current' : ''}`} />
       </button>

@@ -4,7 +4,7 @@ import { notificationDetails } from '../lib/notificationDetails'
 import EmptyState from '../components/EmptyState'
 import RateLimitState from '../components/RateLimitState'
 import { BackIcon, BellIcon, HeartIcon, MailIcon } from '../components/icons'
-import { fetchNotifications, fetchTopicPostsByIds, fetchUserProfile, peekNotifications } from '../api'
+import { markAllNotificationsRead, errorMessage, fetchNotifications, fetchTopicPostsByIds, fetchUserProfile, peekNotifications } from '../api'
 import { timeAgo } from '../lib/format'
 import { privateErrorMessage, errorStatus as readErrorStatus } from '../lib/errors'
 import { AUTH_EVENT, type AuthSession } from '../lib/auth'
@@ -223,6 +223,9 @@ export default function NotificationsPage({
   const [status, setStatus] = useState<'loading' | 'idle' | 'error'>('loading')
   const [errorCode, setErrorCode] = useState<number | null>(null)
   const [reloadToken, setReloadToken] = useState(0)
+  const [markingAll, setMarkingAll] = useState(false)
+  const [markAllError, setMarkAllError] = useState('')
+  const markingRef = useRef(false)
   const [readIds, setReadIds] = useState<Set<number>>(() => readStoredIds())
   const [avatarMap, setAvatarMap] = useState<Record<string, string>>({})
   const [hasMore, setHasMore] = useState(false)
@@ -637,6 +640,23 @@ export default function NotificationsPage({
     }
   }
 
+  const markAllRead = async () => {
+    if (!apiKey || markingRef.current) return
+    markingRef.current = true
+    setMarkingAll(true)
+    setMarkAllError('')
+    const generation = generationRef.current
+    const ids = new Set(items.map(item => item.id))
+    try {
+      await markAllNotificationsRead(apiKey)
+      if (generation !== generationRef.current) return
+      setItems(previous => previous.map(item => ids.has(item.id) ? { ...item, read: true } : item))
+      onUnread?.(0)
+    } catch (error) {
+      if (generation === generationRef.current) setMarkAllError(errorMessage(error) || '标记失败，请重试')
+    } finally { markingRef.current = false; setMarkingAll(false) }
+  }
+
   const handleOpen = (row: NotificationRow) => {
     markRead(row.ids)
     if (row.topicId) onOpenTopic(row.topicId, row.postNumber)
@@ -651,6 +671,7 @@ export default function NotificationsPage({
             <BellIcon className="h-4 w-4" />
             通知
           </h1>
+          {session && <button type="button" onClick={() => void markAllRead()} disabled={markingAll || !items.length} className="mr-auto rounded-lg px-2 py-1 text-[12px] text-sub transition hover:bg-paper hover:text-accent disabled:cursor-default disabled:opacity-50">{markingAll ? '正在标记…' : '一键已读'}</button>}
           <div className="inline-flex items-center gap-1 rounded-full bg-paper p-1">
             {TABS.map((item) => {
               const Icon = item.icon
@@ -672,6 +693,7 @@ export default function NotificationsPage({
           </div>
         </div>
 
+        {markAllError && <p role="alert" className="px-5 py-2 text-xs text-accent">{markAllError}</p>}
         {!session && (
           <EmptyState
             icon={<BellIcon className="h-7 w-7" />}

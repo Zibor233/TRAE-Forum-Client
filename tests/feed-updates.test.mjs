@@ -45,13 +45,17 @@ test('background update checks coalesce, cache results and never attach forum cr
     assert.match(url, /^https:\/\/api.github.com\/repos\/Zibor233\//)
     assert.equal(options.headers.Authorization, undefined)
     assert.equal(options.headers['user-api-key'], undefined)
-    return new Response(JSON.stringify([{ tag_name: 'v0.1.1Beta', prerelease: true }]))
+    return new Response(JSON.stringify([{ tag_name: 'v0.2.0Beta', prerelease: true }]))
   }
   try {
     const [first, second] = await Promise.all([checkForUpdates(), checkForUpdates()])
-    assert.equal(first.version, 'v0.1.1Beta')
+    assert.equal(first.version, 'v0.2.0Beta')
     assert.deepEqual(second, first)
     await checkForUpdates()
     assert.equal(calls, 1)
+    await checkForUpdates(true)
+    assert.equal(calls, 2, 'manual checks bypass cached results')
+    globalThis.fetch = async () => { throw new Error('offline') }
+    assert.match((await checkForUpdates(true)).error, /检测更新失败/)
   } finally { globalThis.fetch = original }
 })

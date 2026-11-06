@@ -38,6 +38,8 @@ export default {
           '"Hiragino Sans GB"',
           '"Microsoft YaHei"',
           'system-ui',
+          '"TRAE Emoji"',
+          '"Noto Color Emoji"',
           'sans-serif',
         ],
         mono: ['"SFMono-Regular"', 'Consolas', '"Liberation Mono"', 'Menlo', 'monospace'],

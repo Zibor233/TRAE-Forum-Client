@@ -453,3 +453,30 @@ html[data-desktop] .fixed.inset-0 { top: 40px; }
   .loading-squares > span, .feed-card-enter, .modal-backdrop-enter, .modal-panel-enter { animation: none; }
   .feed-cover-image { transition: none; }
 }
+
+/* Full-width application layout with comfortable, viewport-scaled spacing. */
+.app-shell { display: flex; width: 100%; padding: 0 16px; }
+.app-main { width: 100%; }
+.feed-columns, .feed-skeletons { gap: 12px; }
+.feed-column { gap: 22px; }
+@media (min-width: 768px) {
+  .app-shell { padding: 0; }
+  .app-sidebar { width: clamp(192px, 13vw, 248px); padding: 0 12px; }
+  .app-main { padding: 0 clamp(20px, 1.6vw, 40px); }
+  .desktop-sidebar { padding-top: 12px; }
+  .feed-columns, .feed-skeletons { gap: 24px; }
+  .feed-column { gap: 28px; }
+  .feed-category { font-size: 16px; }
+}
+@media (min-width: 1600px) {
+  .app-sidebar { padding: 0 16px; }
+  .desktop-sidebar > a:first-child { flex-wrap: nowrap; }
+}
+
+@font-face {
+  font-family: 'TRAE Emoji';
+  src: url('/fonts/NotoColorEmoji.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

@@ -3,7 +3,7 @@ import LoadingIndicator from '../components/LoadingIndicator'
 import FeedCard, { feedCardEstimate } from '../components/FeedCard'
 import FeaturedTopics from '../components/FeaturedTopics'
 import SearchBar from '../components/SearchBar'
-import TraeLogo from '../components/Logo'
+import Brand from '../components/Brand'
 import { ChevronDownIcon, FireIcon, TagIcon } from '../components/icons'
 import {
   ApiError,
@@ -317,7 +317,8 @@ export default function FeedPage({ onCount, categoryId = null }: FeedPageProps) 
 
   // 分列由前端按估算高度分配：翻页时只把新卡片追加到最短列末尾，
   // 已渲染的卡片不会被 CSS columns 的平衡算法重新分配到别的列（滚动时整列跳动）。
-  const columnCount = useColumnCount()
+  const feedWidthRef = useRef<HTMLDivElement>(null)
+  const columnCount = useColumnCount(feedWidthRef)
   const visibleItems = useMemo(
     () => items.filter((topic) => !featuredIds.has(topic.id)),
     [items, featuredIds],
@@ -325,11 +326,10 @@ export default function FeedPage({ onCount, categoryId = null }: FeedPageProps) 
   const columns = useMemo(() => distributeColumns(visibleItems, columnCount), [visibleItems, columnCount])
 
   return (
-    <div className="min-h-[calc(100svh+120px)] min-w-0 pb-20 pt-4 [overflow-anchor:none] sm:pt-6">
+    <div ref={feedWidthRef} className="min-h-[calc(100svh+120px)] min-w-0 pb-20 pt-4 [overflow-anchor:none] sm:pt-6">
       {/* 移动端没有侧栏，品牌与搜索放在内容顶部 */}
       <div className="mb-4 flex items-center gap-2.5 px-0.5 md:hidden">
-        <TraeLogo className="h-[21px] w-[28px] text-[#ff2442]" />
-        <span className="text-[17px] font-semibold tracking-tight text-ink">TRAE社区第三方客户端</span>
+        <Brand />
       </div>
 
       <SearchBar className="mb-5" />
@@ -504,9 +504,9 @@ export default function FeedPage({ onCount, categoryId = null }: FeedPageProps) 
       )}
 
       {columns.some((column) => column.length > 0) && (
-        <div ref={listRef} className="mt-3 flex items-start gap-3">
+        <div ref={listRef} className="feed-columns mt-4 flex items-start">
           {columns.map((column, index) => (
-            <div key={index} className="flex min-w-0 flex-1 flex-col gap-y-3.5">
+            <div key={index} className="feed-column flex min-w-0 flex-1 flex-col">
               {column.map((topic, row) => (
                 <FeedCard
                   key={topic.id}
@@ -528,7 +528,7 @@ export default function FeedPage({ onCount, categoryId = null }: FeedPageProps) 
       )}
 
       {status === 'loading' && !items.length && (
-        <div className="masonry mt-3 columns-2 md:columns-3 lg:columns-4">
+        <div className="feed-skeletons mt-4 grid" style={{ gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }}>
           {Array.from({ length: 8 }).map((_, index) => (
             <div key={index} className="overflow-hidden rounded-lg bg-paper">
               <div className="grid aspect-[4/3] w-full place-items-center bg-line/40"><LoadingIndicator /></div>
@@ -575,20 +575,23 @@ function subLabel(id: number, list: Category[]) {
   return list.find((category) => category.id === id)?.name || '子类别'
 }
 
-/** 与 columns-2 / md:columns-3 / lg:columns-4 的断点保持一致 */
+/** Use the actual content width so sidebar and window resizing share one layout. */
 function columnCountForWidth(width: number) {
-  if (width >= 1024) return 4
-  if (width >= 768) return 3
-  return 2
+  const gap = width < 640 ? 12 : 24
+  return Math.max(2, Math.min(7, Math.floor((width + gap) / (252 + gap))))
 }
 
-function useColumnCount() {
-  const [count, setCount] = useState(() => columnCountForWidth(window.innerWidth))
-  useEffect(() => {
-    const onResize = () => setCount(columnCountForWidth(window.innerWidth))
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
+function useColumnCount(root: { readonly current: HTMLDivElement | null }) {
+  const [count, setCount] = useState(2)
+  useLayoutEffect(() => {
+    const node = root.current
+    if (!node) return
+    const update = () => setCount(columnCountForWidth(node.clientWidth))
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [root])
   return count
 }
 
@@ -602,8 +605,8 @@ function distributeColumns(items: Topic[], count: number) {
       if (heights[i] < heights[target]) target = i
     }
     columns[target].push(topic)
-    // 14 为卡片间距（gap-y-3.5），与视觉间距一致即可
-    heights[target] += feedCardEstimate(topic) + 14
+    // Keep the estimated vertical spacing aligned with the desktop card gap.
+    heights[target] += feedCardEstimate(topic) + 24
   }
   return columns
 }

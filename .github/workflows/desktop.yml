@@ -43,7 +43,7 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
       - name: Check packaged Windows application
         if: matrix.platform == 'win'
-        run: node scripts/smoke-desktop.mjs "release/win-unpacked/TRAE社区第三方客户端.exe"
+        run: node scripts/smoke-desktop.mjs "release/win-unpacked/TRAE社区.exe"
       - name: Calculate SHA256 checksums
         run: node scripts/checksums.mjs
       - name: Upload installers

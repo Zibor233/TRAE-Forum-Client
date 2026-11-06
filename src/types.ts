@@ -214,6 +214,8 @@ export interface Reaction {
 }
 
 export interface Post {
+  bookmark_id?: number | null
+  bookmarked?: boolean
   id: number
   post_number: number
   username: string

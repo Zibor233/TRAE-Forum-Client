@@ -1,7 +1,7 @@
 {
   "name": "trae-forum-client",
   "private": true,
-  "version": "0.1.0-beta.1",
+  "version": "0.1.1-beta.1",
   "type": "module",
   "homepage": "https://github.com/Zibor233/TRAE-Forum-Client",
   "scripts": {

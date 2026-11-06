@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import { needsX11Fallback } from './linux-compat.mjs'
 import { app, BrowserWindow, Menu, dialog, net, protocol, shell } from 'electron'
 import { randomBytes } from 'node:crypto'
 import { once } from 'node:events'
@@ -5,6 +7,10 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { startProxy } from '../proxy/server.mjs'
 import { bundlePath, externalUrl, isAppUrl } from './paths.mjs'
+
+if (needsX11Fallback({ platform: process.platform, hasDri: existsSync('/dev/dri'), display: process.env.DISPLAY, explicitOzone: app.commandLine.hasSwitch('ozone-platform') })) {
+  app.commandLine.appendSwitch('ozone-platform', 'x11')
+}
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'trae', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } },
@@ -54,7 +60,7 @@ async function initialize() {
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1440, height: 940, minWidth: 800, minHeight: 600,
-    title: 'TRAE社区第三方客户端', backgroundColor: '#f6f7f9', show: false,
+    title: 'TRAE社区', backgroundColor: '#f6f7f9', show: false,
     titleBarStyle: 'hidden',
     ...(process.platform !== 'darwin' ? { titleBarOverlay: { color: '#00000000', symbolColor: '#737b89', height: 40 } } : { trafficLightPosition: { x: 16, y: 14 } }),
     autoHideMenuBar: true,
@@ -69,8 +75,11 @@ function createWindow() {
   mainWindow.webContents.session.setPermissionRequestHandler((contents, permission, callback) => {
     callback(contents === mainWindow?.webContents && isAppUrl(contents.getURL()) && permission === 'clipboard-sanitized-write')
   })
-  mainWindow.once('ready-to-show', () => { if (!smoke) mainWindow.show() })
-  mainWindow.on('closed', () => { mainWindow = null })
+  const window = mainWindow
+  const showWindow = () => { if (!smoke && !window.isDestroyed() && !window.isVisible()) window.show() }
+  const showTimer = smoke ? null : setTimeout(showWindow, 4000)
+  window.once('ready-to-show', () => { clearTimeout(showTimer); showWindow() })
+  window.on('closed', () => { clearTimeout(showTimer); if (mainWindow === window) mainWindow = null })
   if (smoke) {
     const timer = setTimeout(() => { console.error('Desktop smoke test timed out'); app.exit(1) }, 30_000)
     mainWindow.webContents.once('did-finish-load', async () => {
@@ -78,9 +87,9 @@ function createWindow() {
         const result = await mainWindow.webContents.executeJavaScript(`(async () => {
           localStorage.setItem('desktop-smoke', 'ok'); const stored = localStorage.getItem('desktop-smoke'); localStorage.removeItem('desktop-smoke');
           const response = await fetch('/api/posts.json', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
-          return { app: Boolean(document.querySelector('#root')?.children.length), stored, status: response.status, node: typeof window.require };
+          return { app: Boolean(document.querySelector('#root')?.children.length), stored, status: response.status, node: typeof window.require, emojiFont: (await document.fonts.load('16px \"TRAE Emoji\"', '📢🎉🫧')).length > 0 };
         })()`)
-        if (!result.app || result.stored !== 'ok' || result.status !== 401 || result.node !== 'undefined') throw new Error(JSON.stringify(result))
+        if (!result.app || result.stored !== 'ok' || result.status !== 401 || result.node !== 'undefined' || !result.emojiFont) throw new Error(JSON.stringify(result))
         console.log('DESKTOP_SMOKE_OK', JSON.stringify(result))
         clearTimeout(timer); app.exit(0)
       } catch (error) { console.error(error); clearTimeout(timer); app.exit(1) }
@@ -103,7 +112,7 @@ else {
     ]))
     await initialize()
     app.on('activate', () => { if (!BrowserWindow.getAllWindows().length) createWindow() })
-  }).catch((error) => { dialog.showErrorBox('TRAE社区第三方客户端启动失败', error.message); app.exit(1) })
+  }).catch((error) => { dialog.showErrorBox('TRAE社区启动失败', error.message); app.exit(1) })
   app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })
   app.on('before-quit', () => { proxy?.closeAllConnections(); proxy?.close() })
 }

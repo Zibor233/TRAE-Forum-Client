@@ -248,7 +248,7 @@ export default function App() {
 
   useEffect(() => {
     const titleMap: Partial<Record<Route['name'], string>> = {
-      feed: 'TRAE社区第三方客户端',
+      feed: 'TRAE社区',
       categories: '所有分类 · TRAE 社区',
       notifications: '通知 · TRAE 社区',
       messages: '消息 · TRAE 社区',
@@ -256,7 +256,7 @@ export default function App() {
       me: '我的主页 · TRAE 社区',
       authCallback: '授权结果 · TRAE 社区',
     }
-    let title = titleMap[route.name] || 'TRAE社区第三方客户端'
+    let title = titleMap[route.name] || 'TRAE社区'
     if (route.name === 'search') title = route.q ? `搜索 ${route.q} · TRAE 社区` : '搜索 · TRAE 社区'
     document.title = title
   }, [route])
@@ -312,7 +312,7 @@ export default function App() {
     <div className="min-h-screen">
       <DesktopTitleBar />
       <UpdateNotice />
-      <div className="mx-auto flex max-w-[1440px] gap-6 px-4">
+      <div className="app-shell">
         <Sidebar
           session={session}
           active={active}
@@ -324,7 +324,7 @@ export default function App() {
           onLogout={logout}
         />
 
-        <main ref={pageRef} className="min-w-0 flex-1">
+        <main ref={pageRef} className="app-main min-w-0 flex-1">
           {view.name === 'feed' && <FeedPage onCount={setFeedCount} />}
           {view.name === 'category' && (
             <FeedPage onCount={setFeedCount} categoryId={view.id} />

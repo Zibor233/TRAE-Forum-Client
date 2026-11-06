@@ -19,7 +19,7 @@ import type {
   UserProfile,
 } from './types'
 import { dedupe, enqueue, type QueuePriority } from './lib/requestQueue'
-import { readCache, writeCache } from './lib/cache'
+import { readCache, writeCache, removeCache } from './lib/cache'
 
 const BASE = '/api'
 
@@ -817,4 +817,16 @@ export function pickUserAvatar(username: string, apiKey: string, uploadId: numbe
 }
 export function featureUserTopic(username: string, apiKey: string, topicId: number | null) {
   return writeJSON(`/u/${encodeURIComponent(username)}/${topicId ? 'feature-topic' : 'clear-featured-topic'}`, 'PUT', apiKey, topicId ? { topic_id: topicId } : {})
+}
+
+export async function markAllNotificationsRead(apiKey: string) {
+  await writeJSON('/notifications/mark-read.json', 'PUT', apiKey, {})
+  removeCache(`notif:${apiKey.slice(-8)}:40:0`)
+}
+
+export function createBookmark(apiKey: string, postId: number) {
+  return writeJSON<{ id: number }>('/bookmarks.json', 'POST', apiKey, { bookmarkable_id: postId, bookmarkable_type: 'Post' })
+}
+export function deleteBookmark(apiKey: string, bookmarkId: number) {
+  return writeJSON(`/bookmarks/${bookmarkId}.json`, 'DELETE', apiKey)
 }

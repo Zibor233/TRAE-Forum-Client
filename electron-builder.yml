@@ -1,5 +1,5 @@
 appId: cn.trae.trae-forum-client.client
-productName: TRAE社区第三方客户端
+productName: TRAE社区
 artifactName: TRAE-Forum-Client-${version}-${os}-${arch}.${ext}
 directories:
   output: release
@@ -25,7 +25,7 @@ nsis:
   perMachine: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
-  shortcutName: TRAE社区第三方客户端
+  shortcutName: TRAE社区
 portable:
   artifactName: TRAE-Forum-Client-${version}-win-${arch}-portable.${ext}
 mac:
@@ -41,7 +41,10 @@ mac:
   entitlementsInherit: build/entitlements.mac.plist
   notarize: false
 linux:
-  icon: build/icon.png
+  icon: build/icons
+  desktop:
+    entry:
+      StartupWMClass: trae-forum-client
   category: Network
   maintainer: 小博同学
   executableName: trae-forum-client
@@ -53,3 +56,6 @@ linux:
       arch: [x64, arm64]
     - target: tar.gz
       arch: [x64, arm64]
+
+deb:
+  afterInstall: build/linux-after-install.tpl

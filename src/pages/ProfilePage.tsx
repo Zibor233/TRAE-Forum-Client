@@ -171,6 +171,12 @@ export default function ProfilePage({ username, session, onRequireLogin, onOpenT
     }
   }, [apiKey, isSelf, username])
 
+  useEffect(() => {
+    const changed = () => { if (isSelf) void loadBookmarks() }
+    window.addEventListener('trae:bookmarks-changed', changed)
+    return () => window.removeEventListener('trae:bookmarks-changed', changed)
+  }, [loadBookmarks, isSelf])
+
   // 切换用户名 / 密钥 / 手动重试时整体重置，并重新拉取资料、分类与第一页笔记
   useEffect(() => {
     notesAbort.current?.abort()

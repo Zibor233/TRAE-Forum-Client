@@ -55,7 +55,7 @@ export default function FeaturedTopics({ onTopics }: FeaturedTopicsProps) {
   return (
     <section className="mt-0">
       <p className="mb-2 text-[11px] font-medium tracking-wide text-sub">社区置顶</p>
-      <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-4 md:gap-3 md:overflow-visible md:px-0">
+      <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-2 xl:grid-cols-4 md:gap-5 md:overflow-visible md:px-0">
         {topics.map((topic) => {
           const author = resolveTopicAuthor(topic, users)
           const cover = topicImage(topic)

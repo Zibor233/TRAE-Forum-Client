@@ -22,8 +22,8 @@ export function selectRelease(releases, current) {
 let cached = { available: false, currentVersion }
 let expires = 0
 let pending
-export async function checkForUpdates() {
-  if (Date.now() < expires) return cached
+export async function checkForUpdates(force = false) {
+  if (!force && Date.now() < expires) return cached
   if (pending) return pending
   pending = (async () => {
     try {
@@ -37,7 +37,7 @@ export async function checkForUpdates() {
       const latest = selectRelease(data, currentVersion)
       cached = latest ? { available: true, currentVersion, version: latest.tag_name, url: `https://github.com/${repository}/releases/tag/${encodeURIComponent(latest.tag_name)}` } : { available: false, currentVersion }
       expires = Date.now() + 6 * 60 * 60_000
-    } catch { expires = Date.now() + 15 * 60_000 }
+    } catch { expires = Date.now() + 15 * 60_000; return { ...cached, error: '检测更新失败，请稍后重试' } }
     return cached
   })().finally(() => { pending = null })
   return pending

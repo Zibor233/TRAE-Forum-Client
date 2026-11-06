@@ -82,3 +82,32 @@ test('profile proxy permits only the intended profile write routes and requires 
     await new Promise(resolve => server.close(resolve))
   }
 })
+
+test('bookmark and notification writes pass the whitelist and still require login', async () => {
+  const realFetch = globalThis.fetch
+  const upstream = []
+  globalThis.fetch = async (url, options) => {
+    upstream.push({url: String(url), ...options})
+    return new Response('{"id":123,"success":"OK"}', {headers:{'content-type':'application/json'}})
+  }
+  const server = startProxy(0)
+  try {
+    await once(server, 'listening')
+    const base = `http://127.0.0.1:${server.address().port}/api`
+    for (const [method, path] of [['POST','/bookmarks.json'],['DELETE','/bookmarks/123.json'],['PUT','/notifications/mark-read.json']]) {
+      const anonymous = await realFetch(base+path, {method})
+      assert.equal(anonymous.status, 401)
+      const result = await realFetch(base+path, {method, headers:{'user-api-key':'test-key','content-type':'application/json'}, ...(method === 'DELETE' ? {} : {body:'{}'})})
+      assert.equal(result.status, 200)
+    }
+    assert.equal(upstream.length, 3)
+    for (const request of upstream) assert.equal(request.headers['user-api-key'], 'test-key')
+    const denied = await realFetch(base+'/bookmarks/bulk.json', {method:'POST', headers:{'user-api-key':'test-key'}})
+    assert.equal(denied.status, 405)
+    assert.equal(upstream.length, 3)
+  } finally {
+    globalThis.fetch = realFetch
+    server.closeAllConnections()
+    await new Promise(resolve => server.close(resolve))
+  }
+})

@@ -64,6 +64,9 @@ const writeHits = new Map() // ip -> { count, resetAt }
 
 // 写操作白名单：点赞/取消赞、回复、发帖、图片上传、聊天消息
 const WRITE_RULES = [
+  { method: 'POST', pattern: /^\/bookmarks\.json$/ },
+  { method: 'DELETE', pattern: /^\/bookmarks\/\d+\.json$/ },
+  { method: 'PUT', pattern: /^\/notifications\/mark-read\.json$/ },
   { method: 'PUT', pattern: /^\/u\/[^/]+\.json$/ },
   { method: 'PUT', pattern: /^\/u\/[^/]+\/preferences\/(username|avatar\/pick)$/ },
   { method: 'PUT', pattern: /^\/u\/[^/]+\/(feature-topic|clear-featured-topic)$/ },
@@ -217,8 +220,9 @@ function send(res, status, body, contentType, extra = {}) {
 
 async function handle(req, res) {
   const ip = req.socket.remoteAddress || 'unknown'
-  if (req.url === '/api/client/update' && req.method === 'GET') {
-    send(res, 200, JSON.stringify(await checkForUpdates()))
+  const clientUrl = new URL(req.url || '/', 'http://localhost')
+  if (clientUrl.pathname === '/api/client/update' && req.method === 'GET') {
+    send(res, 200, JSON.stringify(await checkForUpdates(clientUrl.searchParams.get('force') === '1')))
     return
   }
 

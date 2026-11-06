@@ -220,3 +220,54 @@ test('non-topic notifications describe badges and groups and resolve safe destin
   result = notificationDetails({ ...base, notification_type: 2, data: { topic_id: '123' } }, 'alice')
   assert.equal(result.topicId, 123)
 })
+
+test('mark all notifications read authenticates one bulk request and preserves failures', async () => {
+  const original = globalThis.fetch
+  const requests = []
+  globalThis.fetch = async (url, options) => { requests.push({ url, ...options }); return new Response('{"success":"OK"}') }
+  try {
+    const api = await loadTS('../src/api.ts', source => source
+      .replace(/import .* from ['"].*requestQueue['"];?/, 'const enqueue = run => run(); const dedupe = (key, run) => run();')
+      .replace(/import .* from ['"].*cache['"];?/, 'const readCache = () => null; const writeCache = () => {}; const removeCache = () => {};'))
+    await api.markAllNotificationsRead('test-key')
+    assert.equal(requests.length, 1)
+    assert.equal(requests[0].url, '/api/notifications/mark-read.json')
+    assert.equal(requests[0].method, 'PUT')
+    assert.equal(requests[0].headers['user-api-key'], 'test-key')
+    assert.deepEqual(JSON.parse(requests[0].body), {})
+    globalThis.fetch = async () => new Response('{"errors":["permission denied"]}', { status: 403 })
+    await assert.rejects(api.markAllNotificationsRead('test-key'), error => error.status === 403)
+  } finally { globalThis.fetch = original }
+})
+
+test('bookmarks use the first post ID to create and the returned bookmark ID to delete', async () => {
+  const original = globalThis.fetch
+  const calls = []
+  globalThis.fetch = async (url, options) => { calls.push({ url, ...options }); return new Response('{"id":321}') }
+  try {
+    const api = await loadTS('../src/api.ts', source => source
+      .replace(/import .* from ['"].*requestQueue['"];?/, 'const enqueue = run => run(); const dedupe = (key, run) => run();')
+      .replace(/import .* from ['"].*cache['"];?/, 'const readCache = () => null; const writeCache = () => {}; const removeCache = () => {};'))
+    const bookmark = await api.createBookmark('test-key', 987)
+    await api.deleteBookmark('test-key', bookmark.id)
+    assert.deepEqual(JSON.parse(calls[0].body), { bookmarkable_id: 987, bookmarkable_type: 'Post' })
+    assert.equal(calls[0].method, 'POST')
+    assert.equal(calls[0].headers['user-api-key'], 'test-key')
+    assert.equal(calls[1].url, '/api/bookmarks/321.json')
+    assert.equal(calls[1].method, 'DELETE')
+    globalThis.fetch = async () => new Response('{"errors":["permission denied"]}', { status: 403 })
+    await assert.rejects(api.createBookmark('test-key', 987), error => error.status === 403)
+  } finally { globalThis.fetch = original }
+})
+
+test('article images prefer the lightbox original and otherwise select the largest source', async () => {
+  const { articleImageSource } = await loadTS('../src/lib/format.ts')
+  const image = (attrs, href, lightbox = false) => ({
+    getAttribute: key => attrs[key] || null,
+    closest: () => href ? { classList: { contains: () => lightbox }, getAttribute: () => href } : null,
+  })
+  assert.equal(articleImageSource(image({src:'/optimized/small.jpeg',srcset:'/optimized/large.jpeg 1200w'}, '/uploads/original.png', true)), 'https://forum.trae.cn/uploads/original.png')
+  assert.equal(articleImageSource(image({src:'/small.png',srcset:'/medium.png 600w, /large.png 1600w'})), 'https://forum.trae.cn/large.png')
+  assert.equal(articleImageSource(image({src:'/small.png'}, '/t/123', false)), 'https://forum.trae.cn/small.png')
+  assert.equal(articleImageSource(image({'data-orig-src':'javascript:alert(1)'})), '')
+})

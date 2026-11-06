@@ -12,7 +12,7 @@ import {
 } from './icons'
 import Avatar from './Avatar'
 import { AUTHOR_PROFILE_URL, GITHUB_RELEASES_URL } from '../lib/links'
-import TraeLogo from './Logo'
+import Brand from './Brand'
 import type { AuthSession } from '../lib/auth'
 
 export type SidebarActive = 'feed' | 'categories' | 'notifications' | 'messages' | 'profile' | null
@@ -51,40 +51,39 @@ export default function Sidebar({
   }, [moreOpen])
 
   return (
-    <aside className="hidden w-[220px] shrink-0 md:block">
+    <aside className="app-sidebar hidden shrink-0 md:block">
       <nav className="desktop-sidebar sticky top-5 flex h-[calc(100dvh-40px)] flex-col gap-1 pb-2">
-        <a href="#/" className="mb-4 flex items-center gap-2.5 px-3" aria-label="回到首页">
-          <TraeLogo className="h-[21px] w-[28px] text-[#ff2442]" />
-          <span className="text-[13px] font-semibold tracking-tight text-ink">TRAE社区第三方客户端</span>
+        <a href="#/" className="mb-7 flex items-center gap-2 px-0" aria-label="回到首页">
+          <Brand />
         </a>
         <SideLink
           href="#/"
           label="发现"
-          icon={<CompassIcon className="h-[18px] w-[18px]" />}
+          icon={<CompassIcon className="h-[23px] w-[23px]" />}
           active={active === 'feed'}
         />
-        <SideButton label="发布" icon={<PlusIcon className="h-[18px] w-[18px]" />} onClick={onCompose} />
+        <SideButton label="发布" icon={<PlusIcon className="h-[23px] w-[23px]" />} onClick={onCompose} />
         <SideLink
           href="#/notifications"
           label="通知"
-          icon={<BellIcon className="h-[18px] w-[18px]" />}
+          icon={<BellIcon className="h-[23px] w-[23px]" />}
           active={active === 'notifications'}
           badge={unread}
         />
         <SideLink
           href="#/messages"
           label="消息"
-          icon={<ChatIcon className="h-[18px] w-[18px]" />}
+          icon={<ChatIcon className="h-[23px] w-[23px]" />}
           active={active === 'messages'}
         />
         {session && (
           <a
             href="#/me"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] transition ${
+            className={`flex items-center gap-3 rounded-full px-4 py-3 text-[17px] transition ${
               active === 'profile' ? 'bg-surface font-medium text-ink' : 'text-sub hover:bg-surface hover:text-ink'
             }`}
           >
-            <Avatar template={session.avatarTemplate} name={session.name || session.username} size={18} />
+            <Avatar template={session.avatarTemplate} name={session.name || session.username} size={23} />
             我
           </a>
         )}
@@ -93,7 +92,7 @@ export default function Sidebar({
           <div className="mt-3">
             <button
               onClick={onAccount}
-              className="w-full rounded-lg bg-accent-fill py-2.5 text-[13px] font-medium text-white transition hover:opacity-90"
+              className="w-full rounded-lg bg-accent-fill py-3 text-[16px] font-medium text-white transition hover:opacity-90"
             >
               登录
             </button>
@@ -104,11 +103,11 @@ export default function Sidebar({
           <div ref={moreRef} className="relative">
             <button
               onClick={() => setMoreOpen((prev) => !prev)}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] transition ${
+              className={`flex w-full items-center gap-3 rounded-full px-4 py-3 text-[17px] transition ${
                 moreOpen ? 'bg-surface text-ink' : 'text-sub hover:bg-surface hover:text-ink'
               }`}
             >
-              <MoreIcon className="h-[18px] w-[18px]" />
+              <MoreIcon className="h-[23px] w-[23px]" />
               更多
             </button>
             {moreOpen && (
@@ -130,8 +129,7 @@ export default function Sidebar({
                     />
                   </span>
                 </button>
-                <DisabledMenu label="通知设置" />
-                <DisabledMenu label="隐私设置" />
+                <button type="button" onClick={() => { setMoreOpen(false); window.dispatchEvent(new Event('trae:check-updates')) }} className="block w-full rounded-lg px-2.5 py-2 text-left text-[12.5px] text-ink transition hover:bg-paper">检测更新</button>
                 <a
                   href={GITHUB_RELEASES_URL}
                   target="_blank"
@@ -158,9 +156,9 @@ export default function Sidebar({
             href={GITHUB_RELEASES_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-sub transition hover:bg-surface hover:text-ink"
+            className="flex items-center gap-3 rounded-full px-4 py-3 text-[17px] text-sub transition hover:bg-surface hover:text-ink"
           >
-            <InfoIcon className="h-[18px] w-[18px]" />
+            <InfoIcon className="h-[23px] w-[23px]" />
             关于我们
           </a>
           <p className="px-3 pt-2 text-[11.5px] text-sub/80">
@@ -188,7 +186,7 @@ function SideLink({
   return (
     <a
       href={href}
-      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] transition ${
+      className={`flex items-center gap-3 rounded-full px-4 py-3 text-[17px] transition ${
         active ? 'bg-surface font-medium text-ink' : 'text-sub hover:bg-surface hover:text-ink'
       }`}
     >
@@ -207,23 +205,11 @@ function SideButton({ label, icon, onClick }: { label: string; icon: ReactNode; 
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] text-sub transition hover:bg-surface hover:text-ink"
+      className="flex items-center gap-3 rounded-full px-4 py-3 text-[17px] text-sub transition hover:bg-surface hover:text-ink"
     >
       {icon}
       {label}
     </button>
-  )
-}
-
-function DisabledMenu({ label }: { label: string }) {
-  return (
-    <span
-      title="论坛暂未提供该设置接口"
-      className="flex cursor-not-allowed items-center rounded-lg px-2.5 py-2 text-[12.5px] text-sub/60"
-    >
-      {label}
-      <span className="ml-auto text-[10.5px]">暂未开放</span>
-    </span>
   )
 }
 

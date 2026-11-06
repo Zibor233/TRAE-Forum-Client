@@ -136,6 +136,8 @@ export function sanitizeCooked(html: string): string {
 
     // 包裹图片的 lightbox 链接：展开成纯图片，避免出现蓝色链接下划线
     if (innerImg) {
+      const original = articleImageSource(innerImg)
+      if (original && !innerImg.classList.contains('emoji')) innerImg.setAttribute('src', original)
       anchor.replaceWith(innerImg)
       return
     }
@@ -200,4 +202,14 @@ export function sanitizeCooked(html: string): string {
   })
 
   return doc.body.innerHTML
+}
+
+/** Discourse lightbox links point at original uploads, while img.src is often a thumbnail. */
+export function articleImageSource(img: Element): string {
+  const anchor = img.closest('a')
+  const original = anchor?.classList.contains('lightbox') ? anchor.getAttribute('href') : null
+  const srcset = (img.getAttribute('data-srcset') || img.getAttribute('srcset') || '').split(',').map(value => value.trim().split(/\s+/)).sort((a,b) => parseFloat(b[1] || '0') - parseFloat(a[1] || '0'))[0]?.[0]
+  const raw = original || img.getAttribute('data-orig-src') || img.getAttribute('data-original') || srcset || img.getAttribute('src') || img.getAttribute('data-src') || ''
+  const url = absolutize(raw)
+  return /^https?:\/\//i.test(url) ? url : ''
 }

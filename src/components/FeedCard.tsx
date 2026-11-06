@@ -1,3 +1,4 @@
+import BookmarkButton from './BookmarkButton'
 import LoadingIndicator from './LoadingIndicator'
 ﻿import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
 import type { Category, ForumUser, Topic } from '../types'
@@ -62,6 +63,9 @@ export default function FeedCard({ topic, category, users, entranceDelay = 0 }: 
     const session = loadSession()
     return session ? readTopicLike(session.username, topic.id) : null
   }
+  const [bookmarkError, setBookmarkError] = useState('')
+  const [bookmarkSession, setBookmarkSession] = useState(loadSession)
+  useEffect(() => { const sync = () => setBookmarkSession(loadSession()); window.addEventListener(AUTH_EVENT, sync); return () => window.removeEventListener(AUTH_EVENT, sync) }, [])
   const [likeState, setLikeState] = useState(readLike)
   useEffect(() => {
     const refresh = () => setLikeState(readLike())
@@ -249,19 +253,23 @@ export default function FeedCard({ topic, category, users, entranceDelay = 0 }: 
             {badge}
           </span>
         )}
+        <span className="ml-auto" onClick={event => { event.preventDefault(); event.stopPropagation() }}>
+          <BookmarkButton compact topicId={topic.id} apiKey={bookmarkSession?.key} onError={setBookmarkError} onRequireLogin={() => { window.location.hash = `/topic/${topic.id}` }} />
+        </span>
         {commentCount > 0 && (
-          <span className="ml-auto inline-flex shrink-0 items-center gap-0.5">
+          <span className="inline-flex shrink-0 items-center gap-0.5">
             <CommentIcon className="h-3.5 w-3.5 text-sub/70" />
             {compactNumber(commentCount)}
           </span>
         )}
         {(likes > 0 || likeState?.liked) && (
-          <span className={`inline-flex shrink-0 items-center gap-0.5 ${commentCount > 0 ? '' : 'ml-auto'}`}>
+          <span className={`inline-flex shrink-0 items-center gap-0.5 ${''}`}>
             <HeartIcon className={`h-3.5 w-3.5 ${likeState?.liked ? 'text-[#ff2442] [&_path]:fill-current' : 'text-sub/70'}`} />
             {compactNumber(likes)}
           </span>
         )}
       </div>
+      {bookmarkError && <span role="alert" className="mt-1 block text-xs text-accent">{bookmarkError}</span>}
     </a>
   )
 }
