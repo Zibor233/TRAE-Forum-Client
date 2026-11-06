@@ -408,7 +408,7 @@ html[data-desktop] body { padding-top: 40px; }
   color: rgb(var(--sub));
 }
 html[data-desktop="mac"] .desktop-titlebar-content { margin-left: 88px; }
-html[data-desktop] .desktop-sidebar { top: 60px; height: calc(100dvh - 80px); }
+html[data-desktop] .app-sidebar { top: 60px; height: calc(100dvh - 80px); }
 html[data-desktop] .fixed.inset-0 { top: 40px; }
 
 /* Light category navigation; advanced filters appear only when requested. */

@@ -205,6 +205,8 @@ export interface ActionSummary {
   id: number
   count?: number
   acted?: boolean
+  can_undo?: boolean
+  can_act?: boolean
 }
 
 export interface Reaction {
@@ -214,6 +216,7 @@ export interface Reaction {
 }
 
 export interface Post {
+  user_id?: number
   bookmark_id?: number | null
   bookmarked?: boolean
   id: number

@@ -36,9 +36,20 @@ test('public coalescing, cache refresh, auth isolation and write invalidation', 
     assert.equal(res.headers.get('x-proxy-cache'), 'HIT')
     await res.json()
     const before = calls
+    const anonymousTimings = await realFetch(`${base}/topics/timings.json`, { method: 'POST', body: '{}' })
+    assert.equal(anonymousTimings.status, 401, 'anonymous clients cannot report reading time')
+    const timings = await realFetch(`${base}/topics/timings.json`, {
+      method: 'POST', headers: { 'user-api-key': 'A', 'content-type': 'application/json' },
+      body: JSON.stringify({ topic_id: 123, topic_time: 1000, timings: { 1: 1000 } }),
+    })
+    assert.equal(timings.status, 200)
+    await timings.json()
+    res = await realFetch(`${base}/latest.json`)
+    assert.equal(res.headers.get('x-proxy-cache'), 'HIT', 'reading reports preserve public feed caches')
+    await res.json()
     const privateReads = await Promise.all(['A', 'B'].map(key => realFetch(`${base}/latest.json`, { headers: { 'user-api-key': key } }).then(r => r.json())))
     assert.deepEqual(privateReads.map(r => r.user), ['A', 'B'])
-    assert.equal(calls, before + 2, 'authenticated reads are not shared')
+    assert.equal(calls, before + 3, 'authenticated reads are not shared')
     await realFetch(`${base}/posts.json`, { method: 'POST', headers: { 'user-api-key': 'A', 'content-type': 'application/json' }, body: '{}' }).then(r => r.json())
     res = await realFetch(`${base}/latest.json`)
     assert.equal(res.headers.get('x-proxy-cache'), 'MISS', 'successful writes invalidate cached reads')

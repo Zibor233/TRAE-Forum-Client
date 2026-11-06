@@ -4,6 +4,7 @@ import ProfileEditor from '../components/ProfileEditor'
 import { openUserCard } from '../lib/userCard'
 import EmptyState from '../components/EmptyState'
 import FeedCard from '../components/FeedCard'
+import ProfileBookmarkCard from '../components/ProfileBookmarkCard'
 import { BookmarkIcon, CommentIcon, HeartIcon, InfoIcon, UserIcon } from '../components/icons'
 import { AUTH_EVENT, type AuthSession } from '../lib/auth'
 import type { BookmarkItem, Category, Topic, ForumUser, UserActionItem, UserProfile } from '../types'
@@ -392,7 +393,7 @@ export default function ProfilePage({ username, session, onRequireLogin, onOpenT
             </div>
           </div>
 
-          <div className="mt-3 min-w-0">
+          <div className="mt-3 min-h-[calc(100dvh-420px)] min-w-0">
             {tab === 'notes' && (
               <div>
                 {topicsStatus === 'loading' && topics.length === 0 && (
@@ -506,9 +507,9 @@ export default function ProfilePage({ username, session, onRequireLogin, onOpenT
               (isSelf ? (
                 <div>
                   {bookmarksStatus === 'loading' && bookmarks.length === 0 && (
-                    <div className="space-y-2">
+                    <div className="masonry columns-2 lg:columns-3">
                       {Array.from({ length: 3 }).map((_, index) => (
-                        <div key={index} className="h-16 animate-pulse rounded-2xl bg-surface" />
+                        <div key={index} className="aspect-[4/3] animate-pulse rounded-xl bg-line/50" />
                       ))}
                     </div>
                   )}
@@ -526,13 +527,14 @@ export default function ProfilePage({ username, session, onRequireLogin, onOpenT
                   )}
 
                   {bookmarks.length > 0 && (
-                    <div className="space-y-2">
-                      {bookmarks.map((item, index) => (
-                        <ActionRow
-                          key={`${item.topic_id}-${item.post_number ?? 0}-${index}`}
-                          title={item.title || '未命名话题'}
-                          meta={timeAgo(item.created_at)}
-                          onClick={() => onOpenTopic(item.topic_id, item.post_number ?? undefined)}
+                    <div className="masonry columns-2 lg:columns-3">
+                      {bookmarks.map((item) => (
+                        <ProfileBookmarkCard
+                          key={`${session.username}-${item.id}`}
+                          item={item}
+                          apiKey={apiKey}
+                          categories={categories}
+                          onOpen={() => onOpenTopic(item.topic_id, item.post_number ?? undefined)}
                         />
                       ))}
                     </div>

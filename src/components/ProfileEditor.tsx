@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { changeUsername, errorMessage, featureUserTopic, fetchUserProfile, pickUserAvatar, updateUserProfile, uploadImage } from '../api'
 import { loadSession, saveSession, type AuthSession } from '../lib/auth'
 import { lockBodyScroll } from '../lib/scrollLock'
@@ -46,7 +47,7 @@ export default function ProfileEditor({ user: initialUser, session, onClose, onS
     closeButton.current?.focus()
     const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.stopPropagation(); closeRef.current() } }
     window.addEventListener('keydown', escape, true)
-    return () => { alive.current = false; unlock(); window.removeEventListener('keydown', escape, true); focused?.focus() }
+    return () => { alive.current = false; unlock(); window.removeEventListener('keydown', escape, true); focused?.focus({ preventScroll: true }) }
   }, [])
 
   useEffect(() => {
@@ -126,11 +127,12 @@ export default function ProfileEditor({ user: initialUser, session, onClose, onS
     } finally { savingRef.current = false; if (alive.current) setBusy(false) }
   }
 
-  return <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/35 p-3" onClick={close}>
-    <section role="dialog" aria-modal="true" aria-label="修改资料" onClick={(event) => event.stopPropagation()} className="flex max-h-[92dvh] w-full max-w-[720px] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xl">
-      <div className="flex items-center justify-between border-b border-line px-6 py-4"><h2 className="text-lg font-semibold text-ink">修改资料</h2><button ref={closeButton} onClick={close} disabled={busy} aria-label="关闭资料编辑" className="text-sub disabled:opacity-40">✕</button></div>
+  return createPortal(<div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/35 p-3" onClick={close}>
+    <section role="dialog" aria-modal="true" aria-label="修改资料" onClick={(event) => event.stopPropagation()} className="flex h-full max-h-[900px] w-full max-w-[720px] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xl">
+      <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4"><h2 className="text-lg font-semibold text-ink">修改资料</h2><button ref={closeButton} onClick={close} disabled={busy} aria-label="关闭资料编辑" className="text-sub disabled:opacity-40">✕</button></div>
       <form onSubmit={(event) => { event.preventDefault(); void save() }} className="flex min-h-0 flex-1 flex-col">
-        <fieldset disabled={busy || loading} className="min-h-0 space-y-5 overflow-y-auto px-6 py-5 text-sm text-ink">
+        <div data-profile-editor-scroll className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <fieldset disabled={busy || loading} className="min-w-0 space-y-5 px-6 py-5 text-sm text-ink">
           <label className="block">用户名<input value={username} onChange={(event) => setUsername(event.target.value)} disabled={user.can_edit_username === false} className={fieldClass} /><span className="mt-1 block text-xs text-sub">其他人可以使用 @{username} 提及你{user.can_edit_username === false ? '；论坛暂不允许修改用户名' : ''}</span></label>
           <div><p>个人资料照片</p><div className="mt-2 flex items-center gap-4">{avatar ? <img src={avatar.url} alt="新头像预览" className="h-20 w-20 rounded-full object-cover" /> : <Avatar template={user.avatar_template} name={user.name || user.username} size={80} />}<label className="cursor-pointer rounded-lg border border-line px-3 py-2">上传头像<input type="file" accept="image/*" disabled={uploading || busy || user.can_edit_avatar === false || user.can_upload_avatar === false} onChange={(event) => { void upload(event.target.files?.[0], 'avatar'); event.target.value = '' }} className="sr-only" /></label>{avatar && <button type="button" onClick={() => setAvatar(null)} className="text-sub">撤销</button>}</div></div>
           <div className="grid gap-4 sm:grid-cols-2"><label>姓名<input value={name} onChange={(event) => setName(event.target.value)} disabled={user.can_edit_name === false} className={fieldClass} /></label><label>头衔<input value={title} onChange={(event) => setTitle(event.target.value)} className={fieldClass} /><span className="mt-1 block text-xs text-sub">仅可使用论坛已授予的头衔</span></label></div>
@@ -141,8 +143,9 @@ export default function ProfileEditor({ user: initialUser, session, onClose, onS
           <label className="block">精选话题<input value={featured} onChange={(event) => setFeatured(event.target.value)} placeholder="填写话题编号或链接，留空取消精选" className={fieldClass} />{user.featured_topic && <span className="mt-1 block text-xs text-sub">当前：{user.featured_topic.title}</span>}</label>
           <a href={`https://forum.trae.cn/u/${encodeURIComponent(session.username)}/preferences/profile`} target="_blank" rel="noreferrer" className="inline-block text-xs text-sub hover:underline">前往官方资料设置</a>
         </fieldset>
+        </div>
         <div className="shrink-0 border-t border-line px-6 py-4">{loading && <p role="status" className="mb-3 text-sm text-sub">{error ? <button type="button" onClick={() => setLoadVersion((value) => value + 1)} className="underline">重新加载资料</button> : '正在读取最新资料…'}</p>}{error && <p role="alert" className="mb-3 whitespace-pre-wrap text-sm text-red-600">{error}</p>}{uploading && <p role="status" className="mb-3 text-sm text-sub">图片上传中…</p>}<div className="flex justify-end gap-3"><button type="button" disabled={busy} onClick={close} className="px-4 py-2 text-sm text-sub">取消</button><button disabled={busy || uploading || loading} className="rounded-full bg-accent-fill px-5 py-2 text-sm text-white disabled:opacity-40">{busy ? '保存中…' : '保存修改'}</button></div></div>
       </form>
     </section>
-  </div>
+  </div>, document.body)
 }

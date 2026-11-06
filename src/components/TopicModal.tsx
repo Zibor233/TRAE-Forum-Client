@@ -1,3 +1,5 @@
+import MentionTextarea from './MentionTextarea'
+import { useReadingTime } from '../lib/useReadingTime'
 import BookmarkButton from './BookmarkButton'
 import LoadingIndicator from './LoadingIndicator'
 ﻿import { lockBodyScroll } from '../lib/scrollLock'
@@ -40,7 +42,7 @@ import {
   timeAgo,
 } from '../lib/format'
 import type { Category, Post, TopicDetail } from '../types'
-import { postLiked, publishTopicLike } from '../lib/likes'
+import { postCanUnlike, postLiked, publishTopicLike } from '../lib/likes'
 import { textCoverText } from '../lib/cover'
 
 interface TopicModalProps {
@@ -79,6 +81,7 @@ export default function TopicModal({
   const scrollRef = useRef<HTMLDivElement>(null)
   const commentsEndRef = useRef<HTMLDivElement>(null)
   const focusAppliedRef = useRef(false)
+  useReadingTime(scrollRef, id, session, status === 'idle' && topic?.id === id)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -187,7 +190,7 @@ export default function TopicModal({
     return merged.sort((a, b) => a.post_number - b.post_number)
   }, [topic, addedPosts])
 
-  const opener = posts[0]
+  const opener = posts.find(post => post.post_number === 1)
   const comments = posts.filter((post) => post.post_number > 1)
   const commentCount = topic ? Math.max(0, topic.posts_count - 1) + Math.max(0, addedPosts.length) : 0
 
@@ -465,6 +468,7 @@ export default function TopicModal({
               >
                 {opener && (
                   <div
+                    data-reading-post={opener.post_number}
                     className="post-body mt-1 border-b border-line pb-5 [&_img:not(.emoji)]:cursor-pointer"
                     onClick={(event) => {
                       const image = event.target instanceof Element ? event.target.closest('img:not(.emoji)') : null
@@ -520,7 +524,6 @@ export default function TopicModal({
                 onCreated={appendCreatedPost}
                 commentCount={commentCount}
                 likeTarget={opener}
-                likeCount={topic.like_count}
                 onShare={share}
                 shared={shared}
                 onJumpToComments={jumpToComments}
@@ -551,12 +554,14 @@ function CommentItem({
 }) {
   const initialCount = postLikeCount(post)
   const [liked, setLiked] = useState(postLiked(post))
+  const [canUndo, setCanUndo] = useState(postCanUnlike(post))
   const [count, setCount] = useState(initialCount)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     setLiked(Boolean(session) && postLiked(post))
+    setCanUndo(postCanUnlike(post))
     setCount(initialCount)
     setError('')
   }, [post, initialCount, session?.key])
@@ -566,12 +571,13 @@ function CommentItem({
       onRequireLogin()
       return
     }
-    if (busy) return
+    if (busy || (liked && !canUndo)) return
     setBusy(true)
     setError('')
     try {
       const result = liked ? await unlikePost(session.key, post.id) : await likePost(session.key, post.id)
       setLiked(result.actions_summary ? postLiked(result) : !liked)
+      setCanUndo(postCanUnlike(result))
       setCount(result.actions_summary ? postLikeCount(result) : Math.max(0, count + (liked ? -1 : 1)))
     } catch (err) {
       setError(errorMessage(err))
@@ -584,6 +590,7 @@ function CommentItem({
     <article
       id={`c-${post.post_number}`}
       data-first-comment={first ? 'true' : undefined}
+      data-reading-post={post.post_number}
       className="scroll-mt-2 border-b border-line/70 py-4 last:border-0"
     >
       <div className="flex items-start gap-2.5">
@@ -623,7 +630,7 @@ function CommentItem({
           />
           <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11.5px] text-sub">
             <span>{timeAgo(post.created_at)}</span>
-            <LikeButton readOnly={Boolean(session && post.username.toLowerCase() === session.username.toLowerCase())} postId={post.id} apiKey={session?.key} count={count} liked={liked} busy={busy} onToggle={toggle} />
+            <LikeButton readOnly={Boolean(session && post.username.toLowerCase() === session.username.toLowerCase()) || (liked && !canUndo)} readOnlyReason={liked && !canUndo ? '论坛当前不允许取消此赞，点击查看点赞用户' : undefined} postId={post.id} apiKey={session?.key} count={count} liked={liked} busy={busy} onToggle={toggle} />
             <button onClick={onReply} className="hover:text-ink">
               回复
             </button>
@@ -644,7 +651,6 @@ function ComposerBar({
   onCreated,
   commentCount,
   likeTarget,
-  likeCount,
   onShare,
   shared,
   onJumpToComments,
@@ -658,7 +664,6 @@ function ComposerBar({
   onCreated: (post: CreatedPost) => void
   commentCount: number
   likeTarget?: Post
-  likeCount?: number
   onShare: () => void
   shared: string
   onJumpToComments: () => void
@@ -680,15 +685,17 @@ function ComposerBar({
   const [error, setError] = useState('')
   const [done, setDone] = useState('')
   const [liked, setLiked] = useState(Boolean(session) && postLiked(likeTarget))
-  const [likeTotal, setLikeTotal] = useState(likeCount ?? 0)
+  const [canUndo, setCanUndo] = useState(postCanUnlike(likeTarget))
+  const [likeTotal, setLikeTotal] = useState(likeTarget ? postLikeCount(likeTarget) : 0)
   const postCountRef = useRef(likeTarget ? postLikeCount(likeTarget) : 0)
   useEffect(() => {
     const active = Boolean(session) && postLiked(likeTarget)
     setLiked(active)
-    setLikeTotal(likeCount ?? 0)
+    setCanUndo(postCanUnlike(likeTarget))
+    setLikeTotal(likeTarget ? postLikeCount(likeTarget) : 0)
     postCountRef.current = likeTarget ? postLikeCount(likeTarget) : 0
-    if (session && likeTarget) publishTopicLike(session.username, topicId, active, likeCount ?? 0)
-  }, [likeTarget, likeCount, session?.key, topicId])
+    if (session && likeTarget) publishTopicLike(session.username, topicId, active, postLikeCount(likeTarget))
+  }, [likeTarget, session?.key, topicId])
   const [emojiOpen, setEmojiOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -804,7 +811,7 @@ function ComposerBar({
       onRequireLogin()
       return
     }
-    if (!likeTarget || busy) return
+    if (!likeTarget || busy || (liked && !canUndo)) return
     setBusy(true)
     setError('')
     try {
@@ -813,9 +820,10 @@ function ComposerBar({
         : await likePost(session.key, likeTarget.id)
       const nextLiked = result.actions_summary ? postLiked(result) : !liked
       const nextPostCount = result.actions_summary ? postLikeCount(result) : Math.max(0, postCountRef.current + (liked ? -1 : 1))
-      const nextTotal = Math.max(0, likeTotal + nextPostCount - postCountRef.current)
+      const nextTotal = nextPostCount
       postCountRef.current = nextPostCount
       setLiked(nextLiked)
+      setCanUndo(postCanUnlike(result))
       setLikeTotal(nextTotal)
       publishTopicLike(session.username, topicId, nextLiked, nextTotal)
     } catch (err) {
@@ -826,7 +834,7 @@ function ComposerBar({
   }
 
   return (
-    <div className="absolute inset-x-0 bottom-0 z-30 border-t border-line bg-surface px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2 sm:px-5">
+    <div data-reading-footer className="absolute inset-x-0 bottom-0 z-30 border-t border-line bg-surface px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2 sm:px-5">
       <div
         className={`overflow-hidden transition-[max-height,opacity] duration-[240ms] ease-out ${
           expanded && session ? 'max-h-[460px] opacity-100' : 'pointer-events-none max-h-0 opacity-0'
@@ -844,10 +852,10 @@ function ComposerBar({
             </div>
           )}
 
-          <textarea
+          <MentionTextarea apiKey={session?.key}
             ref={textareaRef}
             value={raw}
-            onChange={(event) => setRaw(event.target.value)}
+            onValueChange={setRaw}
             onPaste={(event) => {
               const files = Array.from(event.clipboardData?.files || [])
               if (files.length) {
@@ -983,7 +991,7 @@ function ComposerBar({
         </button>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <LikeButton readOnly={Boolean(session && likeTarget?.username.toLowerCase() === session.username.toLowerCase())} postId={likeTarget?.id} apiKey={session?.key} count={likeTotal} liked={liked} busy={busy} onToggle={toggleLike} large />
+          <LikeButton readOnly={Boolean(session && likeTarget?.username.toLowerCase() === session.username.toLowerCase()) || (liked && !canUndo)} readOnlyReason={liked && !canUndo ? '论坛当前不允许取消此赞，点击查看点赞用户' : undefined} postId={likeTarget?.id} apiKey={session?.key} count={likeTotal} liked={liked} busy={busy} onToggle={toggleLike} large />
           <button
             onClick={onJumpToComments}
             aria-label="滚动到第一条评论"

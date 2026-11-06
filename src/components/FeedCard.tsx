@@ -1,7 +1,7 @@
 import BookmarkButton from './BookmarkButton'
 import LoadingIndicator from './LoadingIndicator'
 ﻿import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
-import type { Category, ForumUser, Topic } from '../types'
+import type { Category, ForumUser, Post, Topic } from '../types'
 import { compactNumber, coverPalette, firstChar, topicImage } from '../lib/format'
 import { authorBadge, resolveTopicAuthor, type TopicAuthor } from '../lib/topic'
 import { loadTopicAuthor } from '../lib/author'
@@ -31,6 +31,8 @@ function maybePrefetch(topicId: number) {
 }
 
 interface FeedCardProps {
+  bookmarkPost?: Post
+  targetPostNumber?: number
   topic: Topic
   entranceDelay?: number
   category?: Category
@@ -58,7 +60,7 @@ export function feedCardEstimate(topic: Topic) {
   return textCoverText(topic) ? 300 * 3 / 4 + 78 : feedCardTextHeight(topic) + 38
 }
 
-export default function FeedCard({ topic, category, users, entranceDelay = 0 }: FeedCardProps) {
+export default function FeedCard({ topic, category, users, entranceDelay = 0, targetPostNumber, bookmarkPost }: FeedCardProps) {
   const readLike = () => {
     const session = loadSession()
     return session ? readTopicLike(session.username, topic.id) : null
@@ -137,7 +139,7 @@ export default function FeedCard({ topic, category, users, entranceDelay = 0 }: 
     <a
       ref={rootRef}
       data-feed-card
-      href={`#/topic/${topic.id}`}
+      href={`#/topic/${topic.id}${targetPostNumber && targetPostNumber > 1 ? `?post=${targetPostNumber}` : ''}`}
       className="feed-card-enter group block"
       style={{ '--entry-delay': `${entranceDelay}ms` } as CSSProperties}
       onMouseEnter={() => {
@@ -254,7 +256,7 @@ export default function FeedCard({ topic, category, users, entranceDelay = 0 }: 
           </span>
         )}
         <span className="ml-auto" onClick={event => { event.preventDefault(); event.stopPropagation() }}>
-          <BookmarkButton compact topicId={topic.id} apiKey={bookmarkSession?.key} onError={setBookmarkError} onRequireLogin={() => { window.location.hash = `/topic/${topic.id}` }} />
+          <BookmarkButton compact post={bookmarkPost} topicId={topic.id} apiKey={bookmarkSession?.key} onError={setBookmarkError} onRequireLogin={() => { window.location.hash = `/topic/${topic.id}` }} />
         </span>
         {commentCount > 0 && (
           <span className="inline-flex shrink-0 items-center gap-0.5">

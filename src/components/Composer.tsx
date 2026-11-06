@@ -1,3 +1,4 @@
+import MentionTextarea from './MentionTextarea'
 ﻿import { lockBodyScroll } from '../lib/scrollLock'
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import {
@@ -121,9 +122,9 @@ export function ReplyModal({ session, topicId, replyTo, onClose, onSuccess }: Re
       onClose={onClose}
     >
       <form onSubmit={submit} className="mt-4">
-        <textarea
+        <MentionTextarea apiKey={session?.key}
           value={raw}
-          onChange={(event) => setRaw(event.target.value)}
+          onValueChange={setRaw}
           rows={7}
           autoFocus
           placeholder="写下你的回复，支持 Markdown…"
@@ -488,10 +489,10 @@ export function NewTopicModal({ session, onClose, onSuccess, onRequireLogin }: N
           </div>
         )}
 
-        <textarea
+        <MentionTextarea apiKey={session?.key}
           ref={bodyRef}
           value={raw}
-          onChange={(event) => setRaw(event.target.value)}
+          onValueChange={setRaw}
           rows={9}
           onPaste={(event) => {
             const image = Array.from(event.clipboardData.files).find((file) => file.type.startsWith('image/'))

@@ -15,6 +15,7 @@ export default function UpdateNotice() {
         const response = await fetch(manual ? '/api/client/update?force=1' : '/api/client/update', { signal: controller.signal })
         if (!response.ok) throw new Error('检测更新失败，请稍后重试')
         const result: Update = await response.json()
+        if (result.error) { if (manual) setMessage(result.error); return }
         if (!controller.signal.aborted && result.available && result.version && result.url?.startsWith('https://github.com/Zibor233/TRAE-Forum-Client/releases/tag/')) {
           let dismissed = false
           try { dismissed = localStorage.getItem('trae-client.update-dismissed') === result.version } catch { /* Storage is optional. */ }

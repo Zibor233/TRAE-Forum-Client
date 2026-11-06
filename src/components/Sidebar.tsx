@@ -51,8 +51,8 @@ export default function Sidebar({
   }, [moreOpen])
 
   return (
-    <aside className="app-sidebar hidden shrink-0 md:block">
-      <nav className="desktop-sidebar sticky top-5 flex h-[calc(100dvh-40px)] flex-col gap-1 pb-2">
+    <aside className="app-sidebar sticky top-5 hidden h-[calc(100dvh-40px)] shrink-0 self-start md:block">
+      <nav className="desktop-sidebar flex h-full flex-col gap-1 pb-2">
         <a href="#/" className="mb-7 flex items-center gap-2 px-0" aria-label="回到首页">
           <Brand />
         </a>

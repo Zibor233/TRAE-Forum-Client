@@ -14,6 +14,56 @@ async function loadTS(path, transform = s => s) {
   return import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`)
 }
 
+test('bookmark cover requests preserve account access and use background queue priority', async () => {
+  const original = globalThis.fetch
+  const requests = []
+  globalThis.fetch = async (url, options) => {
+    requests.push({ url, ...options })
+    return new Response(JSON.stringify({ id: 123, archetype: 'private_message', post_stream: { posts: [] } }))
+  }
+  try {
+    const api = await loadTS('../src/api.ts', source => source
+      .replace(/import .* from ['"].*requestQueue['"];?/, 'const enqueue = (run, priority) => { if (priority !== "prefetch") throw new Error("Unexpected priority"); return run(); }; const dedupe = (key, run) => run();')
+      .replace(/import .* from ['"].*cache['"];?/, 'const readCache = () => null; const writeCache = () => {}; const removeCache = () => {};'))
+    const result = await api.fetchBookmarkTopic(123, 'bookmark-account-key')
+    assert.equal(result.archetype, 'private_message')
+    assert.equal(requests.length, 1)
+    assert.equal(requests[0].url, '/api/t/123.json')
+    assert.equal(requests[0].headers['user-api-key'], 'bookmark-account-key')
+  } finally { globalThis.fetch = original }
+})
+
+test('reading reports send millisecond deltas once, accept empty success and invalidate only the reader profile', async () => {
+  const realFetch = globalThis.fetch
+  const realStorage = globalThis.localStorage
+  const requests = []
+  const removed = []
+  globalThis.localStorage = { removeItem: key => removed.push(key) }
+  globalThis.fetch = async (path, options) => {
+    requests.push({ path, ...options })
+    return new Response(null, { status: 200 })
+  }
+  try {
+    const api = await loadTS('../src/api.ts', source => source
+      .replace(/import .* from ['"].*requestQueue['"];?/, 'const enqueue = (run, priority) => { if (priority !== "prefetch") throw new Error("Unexpected priority"); return run(); }; const dedupe = (key, run) => run();')
+      .replace(/import .* from ['"].*cache['"];?/, 'const readCache = () => null; const writeCache = () => {}; const removeCache = key => localStorage.removeItem(key);'))
+    await api.reportReadingTime(123, { topic_time: 2500, timings: { 1: 1500, 3: 1000 } }, 'test-key', 'alice')
+    assert.equal(requests[0].path, '/api/topics/timings.json')
+    assert.equal(requests[0].method, 'POST')
+    assert.equal(requests[0].headers['user-api-key'], 'test-key')
+    assert.equal(requests[0].keepalive, true)
+    assert.deepEqual(JSON.parse(requests[0].body), { topic_id: 123, topic_time: 2500, timings: { 1: 1500, 3: 1000 } })
+    assert.deepEqual(removed, ['profile:alice'])
+    globalThis.fetch = async () => { requests.push('failed'); return new Response('{}', { status: 403 }) }
+    await assert.rejects(api.reportReadingTime(123, { topic_time: 1000, timings: { 1: 1000 } }, 'test-key', 'alice'), { status: 403 })
+    assert.equal(requests.length, 2, 'failed additive writes are not retried')
+    assert.equal(removed.length, 1, 'failed reports do not invalidate cached profiles')
+  } finally {
+    globalThis.fetch = realFetch
+    globalThis.localStorage = realStorage
+  }
+})
+
 test('likes restore acted state and isolate persisted topic state by account', async () => {
   const originalStorage = globalThis.localStorage
   const originalWindow = globalThis.window
@@ -270,4 +320,23 @@ test('article images prefer the lightbox original and otherwise select the large
   assert.equal(articleImageSource(image({src:'/small.png',srcset:'/medium.png 600w, /large.png 1600w'})), 'https://forum.trae.cn/large.png')
   assert.equal(articleImageSource(image({src:'/small.png'}, '/t/123', false)), 'https://forum.trae.cn/small.png')
   assert.equal(articleImageSource(image({'data-orig-src':'javascript:alert(1)'})), '')
+})
+
+test('a restored like is revocable only when the authenticated response grants can_undo', async () => {
+  const {postLiked,postCanUnlike} = await loadTS('../src/lib/likes.ts')
+  const expired = { actions_summary: [{id:2,acted:true,count:2}] }
+  assert.equal(postLiked(expired), true)
+  assert.equal(postCanUnlike(expired), false)
+  assert.equal(postCanUnlike({actions_summary:[{id:2,acted:true,can_undo:true}]}), true)
+  assert.equal(postCanUnlike({actions_summary:[{id:2,acted:true,can_undo:false}]}), false)
+  assert.equal(postCanUnlike({actions_summary:[{id:2,can_undo:true}]}), false)
+})
+
+test('post like counts exclude replies and topic totals', async () => {
+  const {postLikeCount} = await loadTS('../src/lib/format.ts')
+  const opener = {post_number:1,actions_summary:[{id:2,count:1}]}
+  const reply = {post_number:2,actions_summary:[{id:2,count:3}]}
+  assert.equal(postLikeCount(opener), 1)
+  assert.equal(postLikeCount(reply), 3)
+  assert.equal(postLikeCount({...opener, actions_summary:[{id:2,count:2,acted:true}]}), 2)
 })

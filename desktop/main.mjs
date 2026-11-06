@@ -1,3 +1,4 @@
+import { configureUpdateTransport } from './updates.mjs'
 import { existsSync } from 'node:fs'
 import { needsX11Fallback } from './linux-compat.mjs'
 import { app, BrowserWindow, Menu, dialog, net, protocol, shell } from 'electron'
@@ -25,6 +26,8 @@ const openExternal = (value) => {
 }
 
 async function initialize() {
+  // Use Chromium networking so update requests honor system proxies and PAC.
+  configureUpdateTransport((url, options) => net.fetch(url, { ...options, credentials: 'omit' }))
   // Use a stable secure origin for localStorage, with a token-protected ephemeral API listener.
   const token = randomBytes(32).toString('hex')
   proxy = startProxy(0, { accessToken: token })

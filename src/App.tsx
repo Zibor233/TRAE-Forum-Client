@@ -1,3 +1,4 @@
+import { openUserCard } from './lib/userCard'
 ﻿import UpdateNotice from './components/UpdateNotice'
 import DesktopTitleBar from './components/DesktopTitleBar'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -122,6 +123,22 @@ function readLocalReadIds(): Set<number> {
 }
 
 export default function App() {
+  useEffect(() => {
+    const clickMention = (event: MouseEvent) => {
+      if (!(event.target instanceof Element) || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+      const link = event.target.closest<HTMLAnchorElement>('a.mention, a[data-user-card]')
+      if (!link) return
+      try {
+        const url = new URL(link.getAttribute('href') || '', 'https://forum.trae.cn')
+        const match = url.pathname.match(/^\/u\/([^/]+)\/?$/)
+        if (url.origin !== 'https://forum.trae.cn' || !match) return
+        event.preventDefault(); event.stopPropagation()
+        openUserCard(decodeURIComponent(match[1]))
+      } catch { /* Keep malformed links inert. */ }
+    }
+    document.addEventListener('click', clickMention, true)
+    return () => document.removeEventListener('click', clickMention, true)
+  }, [])
   const pageRef = useRef<HTMLElement>(null)
   const initial = useRef<Route>(parseHash())
   const [route, setRoute] = useState<Route>(initial.current)

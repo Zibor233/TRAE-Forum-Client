@@ -15,9 +15,10 @@ interface Props {
   onToggle: () => void
   large?: boolean
   readOnly?: boolean
+  readOnlyReason?: string
 }
 
-export default function LikeButton({ postId, apiKey, count, liked, busy, onToggle, large, readOnly = false }: Props) {
+export default function LikeButton({ postId, apiKey, count, liked, busy, onToggle, large, readOnly = false, readOnlyReason }: Props) {
   const [open, setOpen] = useState(false)
   const [users, setUsers] = useState<ForumUser[]>([])
   const [loading, setLoading] = useState(false)
@@ -91,7 +92,7 @@ export default function LikeButton({ postId, apiKey, count, liked, busy, onToggl
       onPointerEnter={(event) => { if (event.pointerType !== 'touch') { cancelTimer(); timer.current = setTimeout(show, 250) } }}
       onPointerLeave={closeSoon}
       onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget) && !panel.current?.contains(event.relatedTarget)) closeSoon() }}>
-      <button type="button" onFocus={show} onClick={readOnly ? show : onToggle} disabled={busy} aria-label={readOnly ? `查看点赞用户，共 ${count} 个赞` : liked ? '取消点赞' : '点赞'}
+      <button type="button" onFocus={show} title={readOnlyReason} onClick={readOnly ? show : onToggle} disabled={busy} aria-label={readOnly ? `查看点赞用户，共 ${count} 个赞` : liked ? '取消点赞' : '点赞'}
         className={`inline-flex items-center rounded-full py-1 disabled:opacity-60 ${liked ? 'text-[#ff2442]' : 'text-sub hover:text-ink'}`}>
         <HeartIcon className={`${large ? 'h-4 w-4' : 'h-3.5 w-3.5'} ${liked ? '[&_path]:fill-current' : ''}`} />
       </button>

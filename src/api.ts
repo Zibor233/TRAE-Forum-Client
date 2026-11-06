@@ -23,6 +23,26 @@ import { readCache, writeCache, removeCache } from './lib/cache'
 
 const BASE = '/api'
 
+export async function reportReadingTime(
+  topicId: number,
+  batch: { topic_time: number; timings: Record<number, number> },
+  apiKey: string,
+  username: string,
+): Promise<void> {
+  await enqueue(async () => {
+    const res = await fetch(`${BASE}/topics/timings.json`, {
+      method: 'POST',
+      headers: { accept: 'application/json', 'content-type': 'application/json', 'user-api-key': apiKey },
+      body: JSON.stringify({ topic_id: topicId, ...batch }),
+      keepalive: true,
+      signal: AbortSignal.timeout(10_000),
+    })
+    if (!res.ok) await parseResponse(res)
+    // Successful timings responses can have an empty body.
+    removeCache(`profile:${username}`)
+  }, 'prefetch')
+}
+
 export class ApiError extends Error {
   status: number
   errors: string[]
@@ -346,6 +366,11 @@ export function fetchTopic(id: number, page = 1, signal?: AbortSignal, apiKey?: 
   return apiKey
     ? getWithKey<TopicDetail>(path, apiKey, signal, 'user')
     : getJSON<TopicDetail>(path, signal, 'user')
+}
+
+/** 收藏卡片按可见范围补齐封面，使用账号权限且不占用点击请求的优先级。 */
+export function fetchBookmarkTopic(id: number, apiKey: string, signal?: AbortSignal) {
+  return getWithKey<TopicDetail>(`/t/${id}.json`, apiKey, signal, 'prefetch')
 }
 
 /**
@@ -829,4 +854,9 @@ export function createBookmark(apiKey: string, postId: number) {
 }
 export function deleteBookmark(apiKey: string, bookmarkId: number) {
   return writeJSON(`/bookmarks/${bookmarkId}.json`, 'DELETE', apiKey)
+}
+
+export function searchMentionUsers(term: string, apiKey?: string, signal?: AbortSignal) {
+  const path = `/u/search/users.json?term=${encodeURIComponent(term)}&include_groups=false`
+  return apiKey ? getWithKey<{ users: ForumUser[] }>(path, apiKey, signal, 'user') : getJSON<{ users: ForumUser[] }>(path, signal, 'user')
 }

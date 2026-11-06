@@ -1,6 +1,6 @@
 # TRAE社区第三方客户端 / TRAE Forum Client
 
-版本 **0.1.1Beta** · MIT · 作者 [@小博同学](https://forum.trae.cn/u/%E5%B0%8F%E5%8D%9A%E5%90%8C%E5%AD%A6)
+版本 **0.1.2Beta** · MIT · 作者 [@小博同学](https://forum.trae.cn/u/%E5%B0%8F%E5%8D%9A%E5%90%8C%E5%AD%A6)
 
 [下载安装包](https://github.com/Zibor233/TRAE-Forum-Client/releases) · [问题反馈](https://github.com/Zibor233/TRAE-Forum-Client/issues)
 

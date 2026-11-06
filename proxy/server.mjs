@@ -64,6 +64,7 @@ const writeHits = new Map() // ip -> { count, resetAt }
 
 // 写操作白名单：点赞/取消赞、回复、发帖、图片上传、聊天消息
 const WRITE_RULES = [
+  { method: 'POST', pattern: /^\/topics\/timings\.json$/ },
   { method: 'POST', pattern: /^\/bookmarks\.json$/ },
   { method: 'DELETE', pattern: /^\/bookmarks\/\d+\.json$/ },
   { method: 'PUT', pattern: /^\/notifications\/mark-read\.json$/ },
@@ -356,7 +357,7 @@ async function proxyWrite(req, res, upstreamPath, ip) {
 
     const contentType = upstream.headers.get('content-type') || 'application/json; charset=utf-8'
     const responseBody = Buffer.from(await upstream.arrayBuffer())
-    if (upstream.ok) {
+    if (upstream.ok && upstreamPath !== '/topics/timings.json') {
       cacheGeneration += 1
       cache.clear()
       cacheBytes = 0
