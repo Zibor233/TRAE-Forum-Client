@@ -158,6 +158,18 @@ doc/images/         README 演示截图
 
 </details>
 
+## 开源协议与版权保留
+
+本项目采用 [MIT License](LICENSE)，允许使用、修改和分发，包括商业用途；**分发本软件或其重要部分时，必须保留原版权声明和 MIT 许可声明**。
+
+```text
+Copyright (c) 2026 小博同学 (Zibor233)
+```
+
+复制、修改后分发或整合本项目的重要部分时，应随附上述版权声明及 LICENSE 中的许可声明。可以为自己的新增代码添加版权声明，但不能因此移除本项目应保留的原版权和许可声明。
+
+这是对现有 MIT 条款的中文说明，具体授权条件以 [LICENSE](LICENSE) 原文为准。
+
 ## 反馈与参与
 
 欢迎通过 [Issues](https://github.com/Zibor233/TRAE-Forum-Client/issues) 反馈问题或提出建议，也欢迎提交 Pull Request。
