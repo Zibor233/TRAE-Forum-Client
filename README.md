@@ -1,179 +1,175 @@
-# TRAE社区第三方客户端 / TRAE Forum Client
+<div align="center">
 
-版本 **0.1.2Beta** · MIT · 作者 [@小博同学](https://forum.trae.cn/u/%E5%B0%8F%E5%8D%9A%E5%90%8C%E5%AD%A6)
+<img src="build/icon.png" alt="TRAE社区图标" width="88" />
 
-[下载安装包](https://github.com/Zibor233/TRAE-Forum-Client/releases) · [问题反馈](https://github.com/Zibor233/TRAE-Forum-Client/issues)
+# TRAE社区
 
-TRAE 中文社区的第三方客户端，支持瀑布流浏览、类别与标签筛选、评论、消息、发帖、实时预览和草稿。首页默认展示最新话题；有新帖或话题更新时提示点击刷新。客户端在后台低频检查新版本，仅提示可更新并打开 Releases 下载页。
+**TRAE Forum Client · 社区第三方桌面客户端**
 
-本项目由社区用户开发，与 TRAE 官方无隶属关系。账户权限及论坛内容以官方服务为准。
+用瀑布流发现新话题，在桌面上阅读、交流与分享。
 
-鉴权走 Discourse 官方 **User API Key** 流程（`/user-api-key/new`）。由于该站点未开放 `auth_redirect` 白名单，授权结果通过「官方授权页 → 复制 payload → 回到本应用粘贴」完成，密钥只存在本机。
+[![Version](https://img.shields.io/badge/版本-0.1.2Beta-ff2442?style=flat-square)](https://github.com/Zibor233/TRAE-Forum-Client/releases/tag/v0.1.2Beta)
+[![Platforms](https://img.shields.io/badge/平台-Windows%20%7C%20macOS%20%7C%20Linux-343a46?style=flat-square)](#下载安装)
+[![License](https://img.shields.io/badge/License-MIT-22a06b?style=flat-square)](LICENSE)
 
-## 运行
+[**下载安装**](https://github.com/Zibor233/TRAE-Forum-Client/releases/tag/v0.1.2Beta) · [更新日志](RELEASE_NOTES.md) · [问题反馈](https://github.com/Zibor233/TRAE-Forum-Client/issues) · [作者分享帖](https://forum.trae.cn/t/topic/465310/)
 
-桌面安装包现已接入：Windows x64、macOS Intel / Apple Silicon、Linux x64 / ARM64。
-麒麟 V10 ARM64 为重点适配目标，仍需目标机器验证。
-命令、自动构建及兼容性检查见 [桌面打包说明](doc/05-桌面打包.md)。
+<img src="doc/images/feed.png" alt="TRAE社区首页：自适应瀑布流、分类导航和话题卡片" width="100%" />
+
+</div>
+
+> 社区用户开发的开源项目，与 TRAE 官方无隶属关系。论坛内容、账号权限及操作结果以官方服务为准。
+
+## 把社区放到桌面上
+
+| 发现与阅读 | 交流与创作 | 账号与桌面 |
+| --- | --- | --- |
+| 自适应瀑布流与分类、标签筛选 | 评论下滑加载、楼层与回复对象 | Windows、macOS、Linux 五个平台构建 |
+| 最新话题、新帖与更新提示 | 发帖与评论输入 `@` 搜索用户 | 官方 User API Key 授权，密钥保存在本机 |
+| 分栏详情、清晰大图与图片切换 | 全屏编辑、实时预览与草稿 | 收藏同步论坛，个人资料可编辑 |
+| 搜索话题、关闭详情后继续浏览 | 频道聊天、帖子式私信、用户卡片 | 通知一键已读、深浅主题、更新检测 |
+
+## 界面一览
+
+### 阅读与图片，放在同一个窗口
+
+左侧浏览大图，右侧阅读正文与评论；点击正文图片可切换对应大图，底部可以点赞、收藏、回复和复制原帖链接。
+
+![帖子详情与图片浏览](doc/images/topic.jpg)
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <strong>收藏，随时回来继续看</strong><br /><br />
+      <a href="doc/images/bookmarks.png"><img src="doc/images/bookmarks.png" alt="首页与帖子收藏功能展示" width="100%" /></a>
+      <p>首页卡片和帖子详情均支持收藏、取消收藏，同步论坛账号。</p>
+    </td>
+    <td width="50%" valign="top">
+      <strong>通知，集中处理</strong><br /><br />
+      <a href="doc/images/notifications.png"><img src="doc/images/notifications.png" alt="通知列表与一键已读" width="100%" /></a>
+      <p>查看评论与 @、赞和收藏等通知，一键同步已读状态。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <strong>看看谁为内容点了赞</strong><br /><br />
+      <a href="doc/images/likes.png"><img src="doc/images/likes.png" alt="帖子和评论的点赞用户列表" width="100%" /></a>
+      <p>悬停查看点赞用户，点击头像或名称打开软件内的用户卡片。</p>
+    </td>
+    <td width="50%" valign="top">
+      <strong>0.1.2Beta，继续打磨体验</strong><br /><br />
+      <p>新增 @ 用户搜索和阅读时长上报，优化收藏卡片、个人主页及资料编辑。</p>
+      <p>修复更新检测失败，支持系统代理与备用检测方式。发现新版本时提示前往 Releases 下载。</p>
+      <a href="RELEASE_NOTES.md">查看完整更新日志 →</a>
+    </td>
+  </tr>
+</table>
+
+<sub>演示截图来自作者的 <a href="https://forum.trae.cn/t/topic/465310/">0.1.1Beta 分享帖</a>，点击图集图片可查看原图。0.1.2Beta 进一步调整了收藏卡片、个人主页和资料编辑弹窗，实际界面以当前版本为准。</sub>
+
+## 下载安装
+
+**[前往 0.1.2Beta 下载页面 →](https://github.com/Zibor233/TRAE-Forum-Client/releases/tag/v0.1.2Beta)**
+
+| 你的设备 | 选择文件 | 说明 |
+| --- | --- | --- |
+| Windows x64 | `win-x64.exe` / `win-x64-portable.exe` | 安装版 / 便携版 |
+| Mac · Intel 芯片 | `mac-x64.dmg` / `.zip` | Intel 架构 |
+| Mac · Apple Silicon | `mac-arm64.dmg` / `.zip` | M 系列芯片 |
+| Linux x64 | `linux-amd64.deb` / `linux-x86_64.AppImage` / `linux-x64.tar.gz` | 根据发行版选择格式 |
+| Linux ARM64 | `linux-arm64.deb` / `.AppImage` / `.tar.gz` | 包含麒麟 V10 ARM64 的适配处理 |
+
+文件名带有 `TRAE-Forum-Client-0.1.2-beta.1-` 前缀；`SHA256SUMS.txt` 可用于校验下载文件。
+
+- Windows 安装包未签名；macOS 安装包未签名及公证，系统可能提示需要确认来源。
+- 麒麟 V10 ARM64 为重点适配目标，不同 SP、桌面环境与驱动组合仍需真机验证。
+- 软件内“检测更新”会提示新版本并打开下载页，目前不会自动下载安装。
+
+## 0.1.2Beta 更新
+
+- **更新检测更稳**：支持系统代理，GitHub API 不可用时使用备用检测方式。
+- **点赞状态更准确**：按论坛权限判断是否可以取消点赞，详情点赞数量仅统计首帖。
+- **支持 @ 用户**：发帖、评论可搜索和选择用户，正文提及可打开用户卡片。
+- **累计阅读时长**：按实际可见楼层计时，后台、编辑回复或长时间无操作时暂停。
+- **个人主页更一致**：修复标签切换时侧栏跳动，收藏采用与笔记一致的封面卡片。
+- **资料编辑更顺畅**：表单可上下滚动，标题与保存按钮固定可见，适配较小窗口。
+
+详细内容见 [更新日志](RELEASE_NOTES.md)。
+
+## 首次登录
+
+1. 打开客户端，点击侧栏的“登录”。
+2. 在登录面板中打开论坛授权页，使用自己的论坛账号确认授权。
+3. 复制授权页显示的 payload，回到客户端粘贴并完成登录。
+
+客户端采用 Discourse 官方 **User API Key** 授权流程。目前使用手动复制授权结果的方式完成登录，不需要在客户端填写论坛密码。可在论坛的应用授权管理中撤销访问权限。
+
+**请求从你的电脑发出。** 桌面版通过本机服务连接官方论坛接口，无需共用项目作者的服务器转发。密钥存储在本机，不提交到项目仓库；提交 Issue 时请勿附带密钥或授权 payload。
+
+## 本地开发
+
+环境：**Node.js 24**、npm。
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-打开 <http://localhost:5173>。`npm run dev` 会同时启动：
-
-1. 本地代理 `http://127.0.0.1:8787`（`proxy/server.mjs`）
-2. Vite 开发服务器 `http://localhost:5173`（`scripts/dev.mjs` 调起）
-
-也可以分开启动：
+浏览器打开 `http://localhost:5173`。开发命令会同时启动 Vite 和 `127.0.0.1:8787` 的本地 API 代理。
 
 ```bash
-npm run proxy   # 终端 1
-npx vite        # 终端 2（依赖 vite.config.ts 里的 /api 转发）
-```
-
-生产构建与预览：
-
-```bash
+# 验证
+npm test
+npx tsc --noEmit
 npm run build
-npm run proxy
-npx vite preview
+
+# 启动桌面应用
+npm run desktop
+
+# 按目标平台打包（建议在对应系统或 GitHub Actions 上运行）
+npm run desktop:win
+npm run desktop:mac
+npm run desktop:linux
 ```
 
-> 预览/构建产物本身不带代理，需要 `npm run proxy` 在 8787 端口运行；若部署到线上，请用 Nginx 等把 `/api/*` 反代到 `https://forum.trae.cn/*`。
+浏览器构建预览需要本地代理同时运行：先执行 `npm run build`，再分别运行 `npm run proxy` 与 `npm run preview`。普通网页直接跨域访问论坛接口受站点 CORS 配置限制，纯静态部署不能替代本地代理。
 
-## 页面
+技术栈：**React · TypeScript · Vite · Tailwind CSS · Electron**。桌面构建通过 GitHub Actions 覆盖五个平台，安装包发布在 Releases。
 
-- **信息流**：顶栏是官方 TRAE 图标（内联 SVG）+ 居中胶囊搜索框 + 创作中心/账号；左侧 220px 侧栏（发现 / RED / 直播 / 发布 / 通知 / 消息 + 红色登录按钮 + 更多 / 关于我们）；分类 Tab 来自 `/categories.json`。主体是 1024px 起四列、768–1024 三列、移动端两列瀑布流，卡片无投影，封面按图片真实宽高比伸缩，无图卡片走渐变色块 + 标题。
-- **话题详情**：不再跳转整页，而是在信息流上打开弹层。遮罩 `rgba(0,0,0,.55)`，桌面 1180px 宽 / 85vh 高，左右分栏：左侧深色媒体区从首楼 `cooked` 提取图片做轮播（左右箭头 + `1/N`、支持键盘方向键）；右侧保留飞书式排版（16px / 行高 1.75、引用浅灰、代码等宽），顶部固定作者/标题/时间/分类，下方评论区，底部固定操作栏（评论输入、点赞、评论数、复制链接）。点遮罩或 Esc 关闭；`#/topic/{id}` 深链直接打开同一弹层。
-- **搜索**：顶栏搜索框接 `/search.json`，展示相关话题与相关回复。
+<details>
+<summary><strong>项目结构</strong></summary>
 
-## 登录：User API Key 流程
-
-### 探测结论（2026-11-04）
-
-| 探测 | 结果 |
-| --- | --- |
-| `GET /user-api-key/new?...&auth_redirect=http://localhost:5173/...` | **200 text/html**，页面预加载 `"user_api_key_authorization":"{\"state\":\"generic_error\"}"` |
-| 同样参数去掉 `auth_redirect`（`/user-api-key/new.json`） | **302** → SSO 登录页，说明参数校验通过 |
-| `/user-api-key/new` 不带参数 | **400** |
-| `/user-api-key/not-a-real-route` | **404**（路由存在性对照） |
-| `HEAD /user-api-key/new` | **200**，响应头 `X-Discourse-Route: user_api_keys/new`、`Auth-Api-Version: 4`、`Auth-Api-Device-Code: true` |
-| `GET /session/csrf.json` | **200** |
-| `GET /users/{username}.json`（如 `TRAE-小阳`） | **200**，可读 `username/post_count` 等 |
-
-**结论**：User API Key 流程是**开启的**（不是 403/404），但站点的 `allowed_user_api_auth_redirects` 没有包含任何本机或示例回调，所有尝试的回调（`localhost:5173`、`127.0.0.1:5173`、`:3000`、`:8080`、`https://`、`example.com`、`forum.trae.cn/user-api-key/callback`）都返回 `generic_error`。
-
-因此采用 Discourse 官方页面的默认兜底：授权完成后页面直接展示 Base64 payload，用户复制回本应用解密。回调路由 `#/auth/callback` 的解析代码仍然保留，站点以后开放白名单即可自动登录。
-
-### 密钥细节
-
-- 前端用 `jsencrypt` 生成 2048 位 RSA 密钥（**PKCS#1 v1.5**，与 Discourse 默认 `pkcs1` padding 一致）；私钥只在本机内存/`sessionStorage` 的 pending 记录里，登录成功后立即丢弃。
-- payload 解密后得到 `key`、`nonce`、`push`、`api: 4`；`nonce` 会与生成时比对，不一致直接拒绝。
-- username 不在 payload 里：登录后用 `GET /session/current.json` + `User-Api-Key` 读取。
-- 登录态保存到 `localStorage`（key、username、client_id、nonce、scopes、创建时间）。
-
-### 首次授权操作
-
-1. 点右上角圆形头像或左侧红色「登录」。
-2. 面板会显示「密钥已就绪」，点「打开论坛授权页」（新窗口，`window.opener=null`）。
-3. 在论坛官方页面登录并点击授权。
-4. 官方页面会显示一段 Base64 payload，复制它。
-5. 回到登录面板，粘贴到输入框并提交，解出 key 与 username 即完成登录。
-
-### 密钥安全
-
-- Api-Key **只在「浏览器 → 本机代理 → forum.trae.cn」之间流转**，不会发往任何第三方域名；代理日志不打印 key。
-- 面板内提供撤销链接：`https://forum.trae.cn/u/{username}/preferences/apps`，也可在「退出本地登录」立即清除 localStorage。
-- 密码不会经过本应用；授权页由官方域名承载。
-
-## 代理
-
-浏览器直接请求 `forum.trae.cn` 会被 CORS 拦截，因此所有请求都走本地代理：
-
-| 能力 | 说明 |
-| --- | --- |
-| 路径 | 前端请求 `/api/xxx` → 代理转发 `https://forum.trae.cn/xxx` |
-| CORS | 补 `Access-Control-Allow-Origin: *`，允许 `User-Api-Key / Api-Key / Api-Username` 请求头 |
-| 缓存 | GET 200 响应内存缓存 60 秒（`x-proxy-cache: HIT/MISS`）；`/session/current.json` 不缓存 |
-| 限速 | 读：每 IP 每 10 秒 40 次；写：每 IP 每分钟 20 次 |
-| 读方法 | 仅 GET/HEAD/OPTIONS |
-| 写方法 | 仅白名单 + 必须带 `User-Api-Key`，其余 405 / 401 |
-| 鉴权读写 | 只有 `/session/current.json` 这一条读接口放行 `User-Api-Key`，其余读接口不带 key |
-| 超时 | 上游 20 秒超时 |
-
-写操作白名单：
-
-| 方法 | 路径 | 用途 |
-| --- | --- | --- |
-| POST | `/post_actions.json` 或 `/post_actions` | 点赞（`post_action_type_id=2`） |
-| DELETE | `/post_actions/{id}?post_action_type_id=2` | 取消赞 |
-| POST | `/posts.json` 或 `/posts` | 回复 / 发帖 |
-
-API Key 鉴权的写操作免 CSRF，前端不需要 `X-CSRF-Token`。写失败时前端直接展示论坛返回的 `errors` 原文。
-
-## 接口清单（实测）
-
-| 接口 | 用途 | 关键字段 |
-| --- | --- | --- |
-| `GET /latest.json?page=N` | 最新信息流，`page=0` 起 | `topic_list.topics[]`、`more_topics_url` |
-| `GET /latest.json?category={id}&page=N` | 分类筛选 | 同上 |
-| `GET /top.json?page=N` | 热门信息流 | `topic_list.topics[]`，含 `views`、`like_count` |
-| `GET /categories.json` | 分类列表 | `category_list.categories[]`：`id/name/color/topic_count` |
-| `GET /t/{id}.json?page=N` | 话题详情 | `title/posts_count/like_count/views/tags/image_url`；`post_stream.posts[]`；每页 20 楼 |
-| `GET /search.json?q=xxx` | 搜索 | `topics[]`、`posts[]`（`blurb`）、`grouped_search_result` |
-| `GET /session/current.json` | 校验 key、取用户名（需 `User-Api-Key`） | `current_user.username/name/avatar_template` |
-| `GET /users/{username}.json` | 用户资料（探测用） | `user.username/post_count` |
-| `POST /post_actions.json` | 点赞 | 请求 `{ id, post_action_type_id: 2, flag_topic: false }` |
-| `DELETE /post_actions/{id}?post_action_type_id=2` | 取消赞 | 无 body |
-| `POST /posts.json` | 回复 / 发帖 | `{ raw, topic_id, reply_to_post_number? }` / `{ raw, title, category }` |
-
-话题字段实测包含：`id/title/fancy_title/slug/posts_count/reply_count/like_count/views/created_at/bumped_at/category_id/tags[]/image_url/thumbnails/excerpt/pinned/has_accepted_answer`。
-
-帖子字段实测包含：`post_number/username/name/created_at/cooked/avatar_template/post_type/actions_summary/reactions/reply_to_post_number/accepted_answer`。点赞数优先取 `actions_summary[id=2].count`，其次 `reactions[].count`。
-
-`cooked` 是论坛渲染后的 HTML；前端用 DOMParser 清洗脚本、事件属性与 `javascript:` 链接后展示。
-
-## 已知限制
-
-1. **无法自动回调**：站点没开 `auth_redirect` 白名单，首次授权必须手动复制粘贴 payload；授权页不会自动把结果送回 localhost。
-2. **未登录状态**：点赞、回复、发帖、评论框均为灰态，点击会打开登录面板，不会发出写请求。
-3. **真实写操作需要你自己的论坛账号**：本原型不会也不能伪造成功；失败时按论坛 `errors` 原文提示。
-4. **关注按钮禁用**：Discourse 关注需要额外的用户/群组接口，当前未实现，hover 提示前往官方页面。
-5. **无视频/直播/通知/消息接口**：侧栏这些入口是占位（禁用态）；卡片不显示视频时长角标，详情遇到 `<video>` 会退回图片模式。
-6. **无图片话题**：详情媒体区显示渐变 + 标题首字的占位块，不是真实媒体。
-7. **长贴截断**：详情最多加载 300 楼（约 15 页），超出部分只有原文链接。
-8. **点赞 action id**：取消赞依赖点赞接口返回的 `id`；若论坛未返回，会提示刷新后重试。
-9. **匿名限流**：实测连续 15 次请求均 200，未见 429；代理已做缓存与本地限速兜底。
-10. **数据实时性**：读缓存 60 秒，新帖最多延迟一分钟出现。
-
-## 自测记录（2026-11-04）
-
-- 只读接口：`latest/top/categories/t/{id}/search` 均 200；`/latest.json?page=2` 返回 30 条；话题 462911 共 86 楼、每页 20 楼。
-- CORS：无 `Access-Control-Allow-Origin`；`OPTIONS` 404。
-- User API Key：见上表探测证据；`/session/csrf.json`、`/users/{username}.json` 均 200。
-- 代理写白名单：无 key 的 `POST /api/post_actions.json` → 401；`POST /api/t/123.json` → 405；`GET /api/latest.json?page=0` → 200。
-- 页面：1280 宽下侧栏、搜索框「探索更多内容」、四列瀑布流 ≥ 8 卡、点击卡片打开分栏弹层、Esc 关闭；多图话题页码 `1/10 → 2/10`；桌面 390 宽下侧栏收起为底部 Tab、两列瀑布流。
-- `npx tsc --noEmit` 与 `npm run build` 通过。
-
-## 目录
-
+```text
+src/
+  components/       帖子详情、编辑器、用户卡片及通用组件
+  pages/            信息流、搜索、通知、消息与个人主页
+  lib/              授权、缓存、请求队列、阅读计时等
+  api.ts            论坛接口调用
+desktop/            Electron 窗口、安全边界与更新检测
+proxy/              本地 API 转发、缓存与限流
+build/              应用图标及平台打包资源
+scripts/            开发、校验与桌面启动检查
+tests/              自动化测试
+doc/images/         README 演示截图
+.github/workflows/  多平台构建与发布
 ```
-index.html                 入口
-vite.config.ts             /api dev proxy
-proxy/server.mjs           本地代理（缓存/限速/写白名单/密钥透传）
-scripts/dev.mjs            同时启动代理与 Vite
-src/api.ts                 读接口 + 写接口 + 错误原文解析
-src/lib/auth.ts            User API Key：密钥生成、授权 URL、payload 解密、localStorage
-src/lib/format.ts          时间、数字、图片、HTML 清洗
-src/pages/FeedPage.tsx     信息流（四列瀑布流 + 分类 Tab）
-src/pages/SearchPage.tsx   搜索
-src/components/TopicModal.tsx  详情弹层（媒体轮播 + 评论 + 操作栏）
-src/components/Header.tsx      顶栏（官方 SVG logo + 搜索 + 创作中心）
-src/components/Sidebar.tsx     侧栏与移动端底部 Tab
-src/components/AuthModal.tsx   登录面板 / 密钥管理
-src/components/Composer.tsx    回复与发帖弹窗
-src/components/FeedCard.tsx    瀑布流卡片
-src/components/Logo.tsx        TRAE 官方图标（内联 SVG，28×21）
-```
+
+桌面构建与兼容性细节见 [桌面打包说明](doc/05-桌面打包.md)。
+
+</details>
+
+## 反馈与参与
+
+欢迎通过 [Issues](https://github.com/Zibor233/TRAE-Forum-Client/issues) 反馈问题或提出建议，也欢迎提交 Pull Request。
+
+反馈时请说明软件版本、系统版本、芯片架构、复现步骤，并尽量提供截图。麒麟用户可附上具体 SP 与桌面环境，便于定位兼容问题。
+
+---
+
+<div align="center">
+
+由 [@小博同学](https://forum.trae.cn/u/%E5%B0%8F%E5%8D%9A%E5%90%8C%E5%AD%A6) 开发 · [MIT 开源协议](LICENSE)
+
+如果这个客户端对你有帮助，欢迎点一个 Star，也欢迎把使用体验分享给社区。
+
+</div>
